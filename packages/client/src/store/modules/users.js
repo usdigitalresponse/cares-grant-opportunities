@@ -1,3 +1,5 @@
+const fetchApi = require('@/helpers/fetchApi');
+
 function initialState() {
   return {
     loggedInUser: null,
@@ -14,6 +16,9 @@ export default {
   actions: {
     login({ commit }, user) {
       commit('SET_LOGGED_IN_USER', user);
+    },
+    logout({ commit }) {
+      fetchApi.get('/api/sessions/logout').then(() => commit('SET_LOGGED_IN_USER', null));
     },
   },
   mutations: {
