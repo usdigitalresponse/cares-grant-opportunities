@@ -24,26 +24,39 @@ function createUser(user) {
         }));
 }
 
-function getUser(id) {
-    return knex('users')
-        .select('*')
-        .where('id', id)
-        .then((r) => r[0]);
-}
-
-function getUserAndRole(id) {
-    return knex('users')
-        .join('roles', 'roles.name', 'users.role')
+async function getUser(id) {
+    const [user] = await knex('users')
         .select(
             'users.id',
             'users.email',
-            'users.role',
+            'users.role_id',
+            'roles.name as role_name',
+            'roles.rules as role_rules',
             'users.agency_id',
+            'agencies.name as agency_name',
+            'agencies.abbreviation as agency_abbreviation',
+            'agencies.parent as agency_parent_id_id',
             'users.tags',
-            'roles.rules',
         )
-        .where('users.id', id)
-        .then((r) => r[0]);
+        .join('roles', 'roles.id', 'users.role_id')
+        .join('agencies', 'agencies.id', 'users.agency_id')
+        .where('users.id', id);
+    if (user.role_id) {
+        user.role = {
+            id: user.role_id,
+            name: user.role_name,
+            rules: user.role_rules,
+        };
+    }
+    if (user.agency_id) {
+        user.agency = {
+            id: user.agency_id,
+            name: user.agency_name,
+            abbreviation: user.agency_abbreviation,
+            agency_parent_id: user.agency_parent_id,
+        };
+    }
+    return user;
 }
 
 function getRoles() {
@@ -209,7 +222,6 @@ module.exports = {
     getUsers,
     createUser,
     getUser,
-    getUserAndRole,
     getRoles,
     createAccessToken,
     getAccessToken,

@@ -12,8 +12,20 @@ Vue.use(IconsPlugin);
 
 Vue.config.productionTip = false;
 
-new Vue({
-  router,
-  store,
-  render: (h) => h(App),
-}).$mount('#app');
+fetch(`${process.env.VUE_APP_GRANTS_API_URL}/api/sessions`, {
+  credentials: 'include',
+})
+  .then((r) => r.json())
+  .then((data) => {
+    if (data && data.user) {
+      store.dispatch('users/login', data.user);
+    }
+    new Vue({
+      router,
+      store,
+      render: (h) => h(App),
+    }).$mount('#app');
+  })
+  .catch((e) => {
+    console.log(e);
+  });
