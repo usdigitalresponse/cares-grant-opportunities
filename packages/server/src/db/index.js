@@ -38,8 +38,8 @@ async function getUser(id) {
             'agencies.parent as agency_parent_id_id',
             'users.tags',
         )
-        .join('roles', 'roles.id', 'users.role_id')
-        .join('agencies', 'agencies.id', 'users.agency_id')
+        .leftJoin('roles', 'roles.id', 'users.role_id')
+        .leftJoin('agencies', 'agencies.id', 'users.agency_id')
         .where('users.id', id);
     if (user.role_id) {
         user.role = {
@@ -114,9 +114,20 @@ function getKeywords() {
         .select('*');
 }
 
-async function getGrants({ currentPage, perPage } = {}) {
+async function getGrants({ currentPage, perPage, filters } = {}) {
     const { data, pagination } = await knex(TABLES.grants)
-        .select('*').paginate({ currentPage, perPage, isLengthAware: true });
+        .select('*')
+        .modify((queryBuilder) => {
+            if (filters) {
+                if (filters.eligibilityCodes) {
+                    queryBuilder.where('eligibility_codes', '~', filters.eligibilityCodes.join('|'));
+                }
+                if (filters.keywords) {
+                    queryBuilder.where('description', '~', filters.keywords.join('|'));
+                }
+            }
+        })
+        .paginate({ currentPage, perPage, isLengthAware: true });
     const viewedBy = await knex(TABLES.agencies)
         .join(TABLES.grants_viewed, `${TABLES.agencies}.id`, '=', `${TABLES.grants_viewed}.agency_id`)
         .whereIn('grant_id', data.map((grant) => grant.grant_id))
@@ -147,6 +158,18 @@ function getAgencyByCode(code) {
     return knex(TABLES.agencies)
         .select('*')
         .where({ code });
+}
+
+function getAgencyEligibilityCodes(agencyId) {
+    return knex(TABLES.eligibility_codes)
+        .select('*')
+        .where('agency_id', agencyId);
+}
+
+function getAgencyKeywords(agencyId) {
+    return knex(TABLES.keywords)
+        .select('*')
+        .where('agency_id', agencyId);
 }
 
 async function createRecord(tableName, row) {
@@ -228,7 +251,9 @@ module.exports = {
     markAccessTokenUsed,
     getAgencies,
     getAgencyByCode,
+    getAgencyEligibilityCodes,
     getKeywords,
+    getAgencyKeywords,
     getGrants,
     markGrantAsViewed,
     getElegibilityCodes,

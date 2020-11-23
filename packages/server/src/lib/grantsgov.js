@@ -21,8 +21,12 @@ async function enrichHitWithDetails(keywords, hit) {
         let desc = null;
         if (resp.body.synopsis) {
             desc = resp.body.synopsis.synopsisDesc;
+            hit.description = desc;
             hit.awardCeiling = resp.body.synopsis.awardCeiling;
             hit.costSharing = resp.body.synopsis.costSharing;
+            if (resp.body.synopsis.applicantTypes) {
+                hit.eligibilityCodes = resp.body.synopsis.applicantTypes.map((appl) => appl.id).join(' ');
+            }
         } else {
             desc = resp.body.forecast.forecastDesc;
             hit.awardCeiling = resp.body.forecast.awardCeiling;
@@ -40,6 +44,7 @@ async function enrichHitWithDetails(keywords, hit) {
                 hit.matchingKeywords.push(kw);
             }
         });
+        hit.rawBody = JSON.stringify(resp.body);
     } else {
         console.log(`unexpected response: ${resp.body}`);
     }

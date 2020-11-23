@@ -11,9 +11,6 @@ const {
 // const { sendPasscode } = require('../lib/email');
 
 router.get('/', (req, res) => {
-    console.log('query', req.query);
-    console.log('cookie', req.signedCookies);
-    console.log('cookie userid', req.signedCookies.userId);
     const { passcode } = req.query;
     if (passcode) {
         getAccessToken(passcode).then((token) => {
