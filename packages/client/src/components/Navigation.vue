@@ -10,7 +10,7 @@
 
         <b-nav-text>{{agency ? agency.name : ''}}</b-nav-text>
 
-        <b-nav-item-dropdown right>
+        <b-nav-item-dropdown right v-if="loggedInUser">
           <!-- Using 'button-content' slot -->
           <template #button-content>
             <em>User</em>
@@ -81,6 +81,7 @@ export default {
   computed: {
     ...mapGetters({
       agency: 'users/agency',
+      loggedInUser: 'users/loggedInUser',
     }),
   },
   methods: {

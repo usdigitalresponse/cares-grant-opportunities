@@ -154,16 +154,13 @@ function getAgencies() {
         .orderBy('name');
 }
 
-function getAgencyByCode(code) {
-    return knex(TABLES.agencies)
-        .select('*')
-        .where({ code });
-}
-
 function getAgencyEligibilityCodes(agencyId) {
-    return knex(TABLES.eligibility_codes)
-        .select('*')
-        .where('agency_id', agencyId);
+    return knex(TABLES.agencies)
+        .join(TABLES.agency_eligibility_codes, `${TABLES.agencies}.id`, '=', `${TABLES.agency_eligibility_codes}.agency_id`)
+        .join(TABLES.eligibility_codes, `${TABLES.eligibility_codes}.code`, '=', `${TABLES.agency_eligibility_codes}.code`)
+        .select('eligibility_codes.code', 'eligibility_codes.label', 'agency_eligibility_codes.enabled',
+            'agency_eligibility_codes.created_at', 'agency_eligibility_codes.updated_at')
+        .where('agencies.id', agencyId);
 }
 
 function getAgencyKeywords(agencyId) {
@@ -250,7 +247,6 @@ module.exports = {
     getAccessToken,
     markAccessTokenUsed,
     getAgencies,
-    getAgencyByCode,
     getAgencyEligibilityCodes,
     getKeywords,
     getAgencyKeywords,

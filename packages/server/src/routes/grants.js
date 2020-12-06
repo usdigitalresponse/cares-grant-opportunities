@@ -9,6 +9,8 @@ router.get('/', async (req, res) => {
     const user = await getUser(req.signedCookies.userId);
     const eligibilityCodes = await getAgencyEligibilityCodes(user.agency.id);
     const keywords = await getAgencyKeywords(user.agency.id);
+    console.log({ user });
+    console.log({ eligibilityCodes, keywords });
     const grants = await getGrants({
         ...req.query,
         filters: {

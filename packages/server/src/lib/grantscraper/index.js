@@ -58,7 +58,8 @@ async function updateFromGrantsGov(keywords, elCodes) {
 }
 
 async function getKeywords() {
-    const rows = await db.getKeywords();
+    // get global keywords (agencyId === null)
+    const rows = await db.getAgencyKeywords(null);
     return rows.map((row) => {
         if (row.mode && row.search_term) {
             return {
