@@ -18,6 +18,12 @@ const adminList = [
         role_id: roles[0].id,
     },
     {
+        email: 'bindu+adminedu@usdigitalresponse.org',
+        name: 'bindu',
+        agency_id: agencies[0].id,
+        role_id: roles[0].id,
+    },
+    {
         email: 'rafael.pol+adminhealth@protonmail.com',
         name: 'rafa3',
         agency_id: agencies[3].id,

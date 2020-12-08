@@ -1,6 +1,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-param-reassign */
 const got = require('got');
+const delay = require('util').promisify(setTimeout);
 
 function simplifyString(string) {
     return string.toLowerCase().replace(/&nbsp;/g, '').replace(/[ \-_.;&"']/g, '');
@@ -138,6 +139,7 @@ async function allOpportunitiesOnlyMatchDescription(previousHits, keywords, elig
         let hit = newHits[i];
         try {
             await enrichHitWithDetails(allKeywords.slice(0), hit);
+            await delay(700);
         } catch (err) {
             console.log(`attempted to enrich hit but failed with ${err}`);
             hit = null;
