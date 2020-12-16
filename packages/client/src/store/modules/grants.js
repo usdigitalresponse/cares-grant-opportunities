@@ -12,7 +12,7 @@ export default {
   namespaced: true,
   state: initialState,
   getters: {
-    grants: (state) => state.grantsPaginated.data,
+    grants: (state) => state.grantsPaginated.data || [],
     grantsPagination: (state) => state.grantsPaginated.pagination,
     eligibilityCodes: (state) => state.eligibilityCodes,
     keywords: (state) => state.keywords,
@@ -24,6 +24,9 @@ export default {
     },
     markGrantAsViewed(context, { grantId, agencyId }) {
       fetchApi.put(`/api/grants/${grantId}/view/${agencyId}`);
+    },
+    markGrantAsInterested(context, { grantId, agencyId }) {
+      fetchApi.put(`/api/grants/${grantId}/interested/${agencyId}`);
     },
     fetchEligibilityCodes({ commit }) {
       fetchApi.get('/api/eligibility-codes')
