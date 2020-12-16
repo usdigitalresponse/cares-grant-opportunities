@@ -146,6 +146,24 @@ function getKeywords() {
         .select('*');
 }
 
+function createKeyword(keyword) {
+    return knex
+        .insert(keyword)
+        .into(TABLES.keywords)
+        .returning(['id', 'created_at'])
+        .then((response) => ({
+            ...keyword,
+            id: response[0].id,
+            created_at: response[0].created_at,
+        }));
+}
+
+function deleteKeyword(id) {
+    return knex(TABLES.keywords)
+        .where('id', id)
+        .del();
+}
+
 async function getGrants({ currentPage, perPage, filters } = {}) {
     const { data, pagination } = await knex(TABLES.grants)
         .select('*')
@@ -292,6 +310,8 @@ module.exports = {
     getAgencyEligibilityCodes,
     getKeywords,
     getAgencyKeywords,
+    createKeyword,
+    deleteKeyword,
     getGrants,
     markGrantAsViewed,
     markGrantAsInterested,

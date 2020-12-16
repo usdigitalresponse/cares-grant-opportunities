@@ -36,6 +36,14 @@ export default {
       fetchApi.get('/api/keywords')
         .then((data) => commit('SET_KEYWORDS', data));
     },
+    async createKeyword({ dispatch }, keyword) {
+      await fetchApi.post('/api/keywords', keyword);
+      dispatch('fetchKeywords');
+    },
+    async deleteKeyword({ dispatch }, keywordId) {
+      await fetchApi.deleteRequest(`/api/keywords/${keywordId}`);
+      dispatch('fetchKeywords');
+    },
   },
   mutations: {
     SET_GRANTS(state, grants) {
