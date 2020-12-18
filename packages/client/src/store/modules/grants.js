@@ -32,6 +32,9 @@ export default {
       fetchApi.get('/api/eligibility-codes')
         .then((data) => commit('SET_ELIGIBILITY_CODES', data));
     },
+    async setEligibilityCodeEnabled(context, { code, enabled }) {
+      await fetchApi.put(`/api/eligibility-codes/${code}/enable/${enabled}`);
+    },
     fetchKeywords({ commit }) {
       fetchApi.get('/api/keywords')
         .then((data) => commit('SET_KEYWORDS', data));

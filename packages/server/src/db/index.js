@@ -141,6 +141,15 @@ function getElegibilityCodes() {
         .select('*');
 }
 
+function setAgencyEligibilityCodeEnabled(code, agencyId, enabled) {
+    return knex(TABLES.agency_eligibility_codes)
+        .where({
+            agency_id: agencyId,
+            code,
+        })
+        .update({ enabled });
+}
+
 function getKeywords() {
     return knex(TABLES.keywords)
         .select('*');
@@ -219,7 +228,8 @@ function getAgencyEligibilityCodes(agencyId) {
         .join(TABLES.eligibility_codes, `${TABLES.eligibility_codes}.code`, '=', `${TABLES.agency_eligibility_codes}.code`)
         .select('eligibility_codes.code', 'eligibility_codes.label', 'agency_eligibility_codes.enabled',
             'agency_eligibility_codes.created_at', 'agency_eligibility_codes.updated_at')
-        .where('agencies.id', agencyId);
+        .where('agencies.id', agencyId)
+        .orderBy('code');
 }
 
 function getAgencyKeywords(agencyId) {
@@ -308,6 +318,7 @@ module.exports = {
     markAccessTokenUsed,
     getAgencies,
     getAgencyEligibilityCodes,
+    setAgencyEligibilityCodeEnabled,
     getKeywords,
     getAgencyKeywords,
     createKeyword,

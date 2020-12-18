@@ -5,14 +5,13 @@ const db = require('../db');
 
 router.get('/', async (req, res) => {
     const user = await db.getUser(req.signedCookies.userId);
-    const eligibilityCodes = await db.getAgencyEligibilityCodes(user.agency.id);
+    const eligibilityCodes = await db.getAgencyEligibilityCodes(user.agency.id, { enabled: true });
+    const enabledECodes = eligibilityCodes.filter((e) => e.enabled);
     const keywords = await db.getAgencyKeywords(user.agency.id);
-    console.log({ user });
-    console.log({ eligibilityCodes, keywords });
     const grants = await db.getGrants({
         ...req.query,
         filters: {
-            eligibilityCodes: eligibilityCodes.map((c) => c.code),
+            eligibilityCodes: enabledECodes.map((c) => c.code),
             keywords: keywords.map((c) => c.search_term),
         },
     });
