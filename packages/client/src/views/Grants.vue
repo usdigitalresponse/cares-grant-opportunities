@@ -32,6 +32,7 @@
     :title="selectedGrant && selectedGrant.title"
     @hide="resetSelectedGrant"
     scrollable
+    size="lg"
     header-bg-variant="primary"
     header-text-variant="light"
     body-bg-variant="light"
@@ -39,23 +40,30 @@
     footer-bg-variant="dark"
     footer-text-variant="light">
     <div v-if="selectedGrant">
+      <h3>{{selectedGrant.grant_number}}</h3>
+      <p><span style="font-weight:bold">Valid from:</span> {{new Date(selectedGrant.open_date).toLocaleDateString('en-US')}}-{{new Date(selectedGrant.close_date).toLocaleDateString('en-US')}}</p>
+      <div v-for="field in dialogFields" :key="field">
+        <p><span style="font-weight:bold">{{titleize(field)}}:</span> {{selectedGrant[field]}}</p>
+      </div>
+      <h6>Description</h6>
+      <div style="max-height: 170px; overflow-y: scroll">
+        <div style="white-space: pre-line" v-html="selectedGrant.description"></div>
+      </div>
+      <br/>
       <b-row>
         <b-col>
-          <h3>{{selectedGrant.grant_number}}</h3>
+          <h4>Interested Agencies</h4>
         </b-col>
         <b-col class="text-right">
           <b-button v-if="interested" variant="dark" disabled>Interested</b-button>
           <b-button v-else variant="outline-success" @click="markGrantAsInterested">Mark as Interested</b-button>
         </b-col>
       </b-row>
-      <h6>Valid from: {{new Date(selectedGrant.open_date).toLocaleDateString('en-US')}}-{{new Date(selectedGrant.close_date).toLocaleDateString('en-US')}}</h6>
-      <div v-for="field in dialogFields" :key="field">
-        <p><span style="font-weight:bold">{{titleize(field)}}</span>: {{selectedGrant[field]}}</p>
-      </div>
-      <h6>Description</h6>
-      <div style="max-height: 170px; overflow-y: scroll">
-        <p>{{removeTags(selectedGrant.description)}}</p>
-      </div>
+      <br/>
+      <b-table
+        :items="interestedAgencies"
+        :fields="interestedAgenciesFields"
+      />
     </div>
   </b-modal>
 </section>
@@ -89,9 +97,11 @@ export default {
         },
         {
           key: 'viewed_by',
+          sortable: true,
         },
         {
           key: 'interested_agencies',
+          sortable: true,
         },
         {
           key: 'agency_code',
@@ -126,11 +136,30 @@ export default {
       interestedConfirmed: false,
       showGrantModal: false,
       selectedGrant: null,
+      selectedGrantIndex: null,
       dialogFields: ['grant_id', 'agency_code', 'award_ceiling', 'cfda_list', 'opportunity_category'],
       orderBy: '',
+      interestedAgenciesFields: [
+        {
+          key: 'agency_name',
+        },
+        {
+          key: 'agency_abbreviation',
+        },
+        {
+          label: 'Name',
+          key: 'user_name',
+        },
+        {
+          label: 'Email',
+          key: 'user_email',
+        },
+      ],
+      interestedAgencies: [],
     };
   },
   mounted() {
+    document.addEventListener('keyup', this.changeGrant);
     this.paginatedGrants();
   },
   computed: {
@@ -157,8 +186,8 @@ export default {
     formattedGrants() {
       return this.grants.map((grant) => ({
         ...grant,
-        interested_agencies: grant.interested_agencies.map((v) => v.abbreviation).join(', '),
-        viewed_by: grant.viewed_by_agencies.map((v) => v.abbreviation).join(', '),
+        interested_agencies: grant.interested_agencies.map((v) => v.agency_abbreviation).join(', '),
+        viewed_by: grant.viewed_by_agencies.map((v) => v.agency_abbreviation).join(', '),
         status: grant.opportunity_status,
         open_date: new Date(grant.open_date).toLocaleDateString('en-US'),
         close_date: new Date(grant.close_date).toLocaleDateString('en-US'),
@@ -179,12 +208,18 @@ export default {
         await this.markGrantAsViewedAction({ grantId: this.selectedGrant.grant_id, agencyId: this.agency.id });
       }
     },
+    async selectedGrant() {
+      if (this.selectedGrant) {
+        this.interestedAgencies = await this.fetchInterestedAgencies({ grantId: this.selectedGrant.grant_id });
+      }
+    },
   },
   methods: {
     ...mapActions({
       fetchGrants: 'grants/fetchGrants',
       markGrantAsViewedAction: 'grants/markGrantAsViewed',
       markGrantAsInterestedAction: 'grants/markGrantAsInterested',
+      fetchInterestedAgencies: 'grants/fetchInterestedAgencies',
     }),
     titleize,
     async paginatedGrants() {
@@ -213,6 +248,7 @@ export default {
       if (row) {
         const grant = this.grants.find((g) => row.grant_id === g.grant_id);
         this.selectedGrant = grant;
+        this.selectedGrantIndex = this.grants.findIndex((g) => row.grant_id === g.grant_id);
         this.showGrantModal = Boolean(grant);
       }
     },
@@ -223,8 +259,20 @@ export default {
       this.selectedGrant = null;
       this.paginatedGrants();
     },
-    removeTags(str) {
-      return str.replace(/(<([^>]+)>)/ig, '').replace(/&nbsp;/ig, '');
+    changeGrant(event) {
+      if (event.keyCode === 38) {
+        if (this.grantsPagination.currentPage === 1) {
+          return;
+        }
+        const grant = this.grants[this.selectedGrantIndex - 1];
+        this.onRowSelected([grant]);
+      } else if (event.keyCode === 40) {
+        if (this.grantsPagination.currentPage === this.grantsPagination.lastPage) {
+          return;
+        }
+        const grant = this.grants[this.selectedGrantIndex + 1];
+        this.onRowSelected([grant]);
+      }
     },
   },
 };

@@ -25,6 +25,9 @@ export default {
     markGrantAsViewed(context, { grantId, agencyId }) {
       fetchApi.put(`/api/grants/${grantId}/view/${agencyId}`);
     },
+    fetchInterestedAgencies(context, { grantId }) {
+      return fetchApi.get(`/api/grants/${grantId}/interested`);
+    },
     markGrantAsInterested(context, { grantId, agencyId }) {
       fetchApi.put(`/api/grants/${grantId}/interested/${agencyId}`);
     },
