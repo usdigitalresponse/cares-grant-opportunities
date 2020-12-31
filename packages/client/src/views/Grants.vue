@@ -61,7 +61,7 @@
       </b-row>
       <br/>
       <b-table
-        :items="interestedAgencies"
+        :items="selectedGrant.interested_agencies"
         :fields="interestedAgenciesFields"
       />
     </div>
@@ -132,8 +132,6 @@ export default {
           key: 'updated_at',
         },
       ],
-      viewedConfirmed: false,
-      interestedConfirmed: false,
       showGrantModal: false,
       selectedGrant: null,
       selectedGrantIndex: null,
@@ -155,11 +153,10 @@ export default {
           key: 'user_email',
         },
       ],
-      interestedAgencies: [],
     };
   },
   mounted() {
-    document.addEventListener('keyup', this.changeGrant);
+    document.addEventListener('keyup', this.changeSelectedGrantIndex);
     this.paginatedGrants();
   },
   computed: {
@@ -171,17 +168,20 @@ export default {
     totalRows() {
       return this.grantsPagination ? this.grantsPagination.total : 0;
     },
+    lastPage() {
+      return this.grantsPagination ? this.grantsPagination.lastPage : 0;
+    },
     alreadyViewed() {
-      if (!this.selectedGrant || !this.selectedGrant) {
+      if (!this.selectedGrant) {
         return false;
       }
-      return this.viewedConfirmed || this.selectedGrant.viewed_by_agencies.find((viewed) => viewed.agency_id === this.agency.id);
+      return this.selectedGrant.viewed_by_agencies.find((viewed) => viewed.agency_id === this.agency.id);
     },
     interested() {
-      if (!this.selectedGrant || !this.selectedGrant) {
+      if (!this.selectedGrant) {
         return false;
       }
-      return this.interestedConfirmed || this.selectedGrant.interested_agencies.find((interested) => interested.agency_id === this.agency.id);
+      return this.selectedGrant.interested_agencies.find((interested) => interested.agency_id === this.agency.id);
     },
     formattedGrants() {
       return this.grants.map((grant) => ({
@@ -203,15 +203,19 @@ export default {
     orderBy() {
       this.paginatedGrants();
     },
-    async alreadyViewed() {
-      if (!this.alreadyViewed && this.selectedGrant) {
-        await this.markGrantAsViewedAction({ grantId: this.selectedGrant.grant_id, agencyId: this.agency.id });
-      }
-    },
     async selectedGrant() {
       if (this.selectedGrant) {
-        this.interestedAgencies = await this.fetchInterestedAgencies({ grantId: this.selectedGrant.grant_id });
+        if (!this.alreadyViewed) {
+          this.markGrantAsViewed();
+        }
       }
+    },
+    selectedGrantIndex() {
+      this.changeSelectedGrant();
+    },
+    // when we fetch grants, refresh selectedGrant reference
+    grants() {
+      this.changeSelectedGrant();
     },
   },
   methods: {
@@ -219,7 +223,6 @@ export default {
       fetchGrants: 'grants/fetchGrants',
       markGrantAsViewedAction: 'grants/markGrantAsViewed',
       markGrantAsInterestedAction: 'grants/markGrantAsInterested',
-      fetchInterestedAgencies: 'grants/fetchInterestedAgencies',
     }),
     titleize,
     async paginatedGrants() {
@@ -238,10 +241,11 @@ export default {
     },
     async markGrantAsViewed() {
       await this.markGrantAsViewedAction({ grantId: this.selectedGrant.grant_id, agencyId: this.agency.id });
+      await this.paginatedGrants();
     },
     async markGrantAsInterested() {
       await this.markGrantAsInterestedAction({ grantId: this.selectedGrant.grant_id, agencyId: this.agency.id });
-      this.interestedConfirmed = true;
+      await this.paginatedGrants();
     },
     onRowSelected(items) {
       const [row] = items;
@@ -254,24 +258,39 @@ export default {
     },
     resetSelectedGrant() {
       this.showGrantModal = false;
-      this.viewedConfirmed = false;
-      this.interestedConfirmed = false;
       this.selectedGrant = null;
-      this.paginatedGrants();
     },
-    changeGrant(event) {
-      if (event.keyCode === 38) {
-        if (this.grantsPagination.currentPage === 1) {
+    changeSelectedGrant() {
+      if (this.showGrantModal) {
+        const grant = this.grants[this.selectedGrantIndex];
+        this.onRowSelected([grant]);
+      }
+    },
+    changeSelectedGrantIndex(event) {
+      if (event.keyCode === 37) {
+        // left key
+        if (this.currentPage === 1 && this.selectedGrantIndex === 0) {
           return;
         }
-        const grant = this.grants[this.selectedGrantIndex - 1];
-        this.onRowSelected([grant]);
-      } else if (event.keyCode === 40) {
-        if (this.grantsPagination.currentPage === this.grantsPagination.lastPage) {
+        if (this.currentPage !== 1 && this.selectedGrantIndex === 0) {
+          // fetch previous page of grants
+          this.currentPage -= 1;
+          this.selectedGrantIndex = 0;
           return;
         }
-        const grant = this.grants[this.selectedGrantIndex + 1];
-        this.onRowSelected([grant]);
+        this.selectedGrantIndex -= 1;
+      } else if (event.keyCode === 39) {
+        // right key
+        if (this.currentPage === this.lastPage) {
+          return;
+        }
+        if (this.selectedGrantIndex + 1 === this.perPage) {
+          // fetch next page of grants
+          this.currentPage += 1;
+          this.selectedGrantIndex = 0;
+          return;
+        }
+        this.selectedGrantIndex += 1;
       }
     },
   },
