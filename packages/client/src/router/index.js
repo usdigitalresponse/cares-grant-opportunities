@@ -96,38 +96,6 @@ router.beforeEach((to, from, next) => {
   } else {
     next();
   }
-  // console.log('hey');
-  // if (!loggedIn()) {
-  //   next({
-  //     path: '/login',
-  //   });
-  // } else {
-  //   next();
-  // }
-  // if (to.meta.requiresAuth) {
-  //   if (!loggedIn()) {
-  //     next({
-  //       path: '/login',
-  //     });
-  //   } else {
-  //     next();
-  //   }
-  // } else {
-  //   next();
-  // }
-  // if (to.matched.some((record) => record.meta.requiresAuth)) {
-  //   console.log('here');
-  //   console.log(loggedIn());
-  //   if (!loggedIn()) {
-  //     next({
-  //       path: '/login',
-  //     });
-  //   } else {
-  //     next();
-  //   }
-  // } else {
-  //   next(); // make sure to always call next()!
-  // }
 });
 
 export default router;
