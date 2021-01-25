@@ -230,6 +230,21 @@ async function getGrants({
     return { data: dataWithAgency, pagination };
 }
 
+async function getTotalGrants() {
+    const rows = await knex(TABLES.grants).count();
+    return rows[0].count;
+}
+
+async function getTotalViewedGrants() {
+    const rows = await knex(TABLES.grants_viewed).count();
+    return rows[0].count;
+}
+
+async function getTotalInteresedGrants() {
+    const rows = await knex(TABLES.grants_interested).count();
+    return rows[0].count;
+}
+
 function markGrantAsViewed({ grantId, agencyId, userId }) {
     return knex(TABLES.grants_viewed)
         .insert({ agency_id: agencyId, grant_id: grantId, user_id: userId });
@@ -372,6 +387,9 @@ module.exports = {
     createKeyword,
     deleteKeyword,
     getGrants,
+    getTotalGrants,
+    getTotalViewedGrants,
+    getTotalInteresedGrants,
     markGrantAsViewed,
     getInterestedAgencies,
     getInterestedCodes,
