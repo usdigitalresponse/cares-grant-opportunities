@@ -7,6 +7,7 @@ function initialState() {
     totalViewedGrants: null,
     totalInterestedGrants: null,
     totalGrantsBetweenDates: null,
+    totalInterestedGrantsByAgencies: null,
   };
 }
 
@@ -19,6 +20,7 @@ export default {
     totalViewedGrants: (state) => state.totalViewedGrants,
     totalInterestedGrants: (state) => state.totalInterestedGrants,
     totalGrantsBetweenDates: (state) => state.totalGrantsBetweenDates,
+    totalInterestedGrantsByAgencies: (state) => state.totalInterestedGrantsByAgencies,
   },
   actions: {
     async fetchDashboard({ commit }) {
@@ -28,7 +30,7 @@ export default {
 
       yesterday.setDate(yesterday.getDate() - 1);
       const dateQueryString = `${yesterday.toISOString().split('T')[0]}|${today.toISOString().split('T')[0]}`;
-      const result = await fetchApi.get(`/api/dashboard?totalGrants=true&totalViewedGrants=true&totalInterestedGrants=true&totalGrantsBetweenDates=${dateQueryString}`);
+      const result = await fetchApi.get(`/api/dashboard?totalGrants=true&totalViewedGrants=true&totalInterestedGrants=true&totalGrantsBetweenDates=${dateQueryString}&totalInterestedGrantsByAgencies=true`);
       if (result.totalGrants) {
         commit('SET_TOTAL_GRANTS', result.totalGrants);
       }
@@ -40,6 +42,9 @@ export default {
       }
       if (result.totalGrantsBetweenDates) {
         commit('SET_TOTAL_24HR_GRANTS', result.totalGrantsBetweenDates);
+      }
+      if (result.totalInterestedGrantsByAgencies) {
+        commit('SET_TOTAL_TOTAL_INTERESTED_GRANTS_BY_AGENCIES', result.totalInterestedGrantsByAgencies);
       }
     },
   },
@@ -55,6 +60,9 @@ export default {
     },
     SET_TOTAL_24HR_GRANTS(state, data) {
       state.totalGrantsBetweenDates = data;
+    },
+    SET_TOTAL_TOTAL_INTERESTED_GRANTS_BY_AGENCIES(state, data) {
+      state.totalInterestedGrantsByAgencies = data;
     },
     SET_DASHBOARD(state, dashboard) {
       state.dashboard = dashboard;

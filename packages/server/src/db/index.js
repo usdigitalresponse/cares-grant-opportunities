@@ -245,10 +245,16 @@ async function getTotalInteresedGrants() {
     return rows[0].count;
 }
 
+async function getTotalInterestedGrantsByAgencies() {
+    const rows = await knex(TABLES.grants_interested)
+        .select(`${TABLES.grants_interested}.agency_id`, `${TABLES.agencies}.name`, `${TABLES.agencies}.abbreviation`)
+        .join(TABLES.agencies, `${TABLES.grants_interested}.agency_id`, `${TABLES.agencies}.id`)
+        .count(`${TABLES.grants_interested}.agency_id`)
+        .groupBy(`${TABLES.grants_interested}.agency_id`, `${TABLES.agencies}.name`, `${TABLES.agencies}.abbreviation`);
+    return rows;
+}
+
 async function getTotalGrantsBetweenDates(from, to) {
-    console.log({
-        from, to, dateFrom: new Date(from), toFrom: new Date(to),
-    });
     const rows = await knex(TABLES.grants)
         .where('created_at', '>=', new Date(from))
         .where('created_at', '<=', new Date(to))
@@ -402,6 +408,7 @@ module.exports = {
     getTotalViewedGrants,
     getTotalInteresedGrants,
     getTotalGrantsBetweenDates,
+    getTotalInterestedGrantsByAgencies,
     markGrantAsViewed,
     getInterestedAgencies,
     getInterestedCodes,
