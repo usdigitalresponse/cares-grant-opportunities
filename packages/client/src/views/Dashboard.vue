@@ -10,6 +10,9 @@
         <b-card bg-variant="secondary" text-variant="white" header="Total Interested Grants" class="text-center">
           <h3>{{totalInterestedGrants}}</h3>
         </b-card>
+        <b-card bg-variant="secondary" text-variant="white" header="Total Grants Last 24hrs" class="text-center">
+          <h3>{{totalGrantsBetweenDates}}</h3>
+        </b-card>
       </b-card-group>
   </section>
 </template>
@@ -33,6 +36,7 @@ export default {
       totalGrants: 'dashboard/totalGrants',
       totalViewedGrants: 'dashboard/totalViewedGrants',
       totalInterestedGrants: 'dashboard/totalInterestedGrants',
+      totalGrantsBetweenDates: 'dashboard/totalGrantsBetweenDates',
     }),
   },
   methods: {

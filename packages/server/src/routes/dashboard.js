@@ -14,6 +14,15 @@ router.get('/', async (req, res) => {
     if (req.query.totalInterestedGrants) {
         result.totalInterestedGrants = await db.getTotalInteresedGrants();
     }
+    if (req.query.totalGrantsBetweenDates) {
+        const dates = req.query.totalGrantsBetweenDates.split('|');
+        if (dates.length === 2) {
+            result.totalGrantsBetweenDates = await db.getTotalGrantsBetweenDates(
+                dates[0],
+                dates[1],
+            );
+        }
+    }
     res.json(result);
 });
 
