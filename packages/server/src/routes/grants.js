@@ -2,6 +2,7 @@ const express = require('express');
 
 const router = express.Router();
 const db = require('../db');
+const pdf = require('../lib/pdf');
 
 router.get('/', async (req, res) => {
     const user = await db.getUser(req.signedCookies.userId);
@@ -45,6 +46,11 @@ router.put('/:grantId/interested/:agencyId', async (req, res) => {
         interestedCode,
     });
     res.json({});
+});
+
+router.get('/:grantId/form', async (req, res) => {
+    const filePath = await pdf.fillPdf('nevada.pdf');
+    res.redirect(filePath);
 });
 
 module.exports = router;
