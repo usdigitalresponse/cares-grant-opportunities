@@ -48,9 +48,48 @@ router.put('/:grantId/interested/:agencyId', async (req, res) => {
     res.json({});
 });
 
-router.get('/:grantId/form', async (req, res) => {
-    const filePath = await pdf.fillPdf('nevada.pdf');
-    res.redirect(filePath);
+const formFields = {
+    nevada_spoc: {
+        PDFTextField: {
+            'Name of Person Requesting SPoC': 'name',
+            Email: 'email',
+            'NoFO #': 'grant_number',
+            'Title of Federal Program': 'title',
+            CFDA: 'cfda_list',
+            'Application amount': '',
+            'Funding Agency': 'agencyName',
+            // 'Date of award or start of project': '',
+            // 'Date due': '',
+            // 'Date full application is due': '',
+            'Max amount allowed for applications': 'award_ceiling',
+            // 'State Application Identification #': '',
+            // Summary: '',
+        },
+    },
+};
+
+router.get('/:grantId/form/:formName', async (req, res) => {
+    if (req.params.formName !== 'nevada_spoc') {
+        return res.status(400);
+    }
+    const user = await db.getUser(req.signedCookies.userId);
+    const grant = await db.getGrant({ grantId: req.params.grantId });
+    if (!grant) {
+        return res.status(404);
+    }
+    if (grant.raw_body) {
+        try {
+            const rawBody = JSON.parse(grant.raw_body);
+            grant.agencyName = rawBody && rawBody.synopsis ? rawBody.synopsis.agencyName : '';
+        } catch (e) {
+            console.log('failed to parse grant raw_body');
+        }
+    }
+    const filePath = await pdf.fillPdf(`${req.params.formName}.pdf`, formFields[req.params.formName], {
+        ...user,
+        ...grant,
+    });
+    res.json({ filePath: `${process.env.API_DOMAIN}${filePath}` });
 });
 
 module.exports = router;
