@@ -58,20 +58,23 @@ async function enrichHitWithDetails(keywords, hit) {
 }
 
 async function search(postBody) {
-    const resp = await got.post({
-        url: 'https://www.grants.gov/grantsws/rest/opportunities/search/',
-        json: postBody,
-        responseType: 'json',
-        timeout: HTTP_TIMEOUT,
-    });
+    try {
+        const resp = await got.post({
+            url: 'https://www.grants.gov/grantsws/rest/opportunities/search/',
+            json: postBody,
+            responseType: 'json',
+            timeout: HTTP_TIMEOUT,
+        });
 
-    if (resp.statusCode < 200 || resp.statusCode >= 300) {
-        console.log('request failed with code', resp.statusCode);
-        console.log(resp.body);
-        process.exit(1);
+        if (resp.statusCode < 200 || resp.statusCode >= 300) {
+            console.log('request failed with code', resp.statusCode);
+            console.log(resp.body);
+        }
+        return resp;
+    } catch (err) {
+        console.log('request failed', err);
+        return null;
     }
-
-    return resp;
 }
 
 async function getEligibilities() {
@@ -85,9 +88,11 @@ async function getEligibilities() {
         sortBy: 'openDate|desc',
     });
     const res = {};
-    resp.body.eligibilities.forEach((item) => {
-        res[item.value] = item.label;
-    });
+    if (resp) {
+        resp.body.eligibilities.forEach((item) => {
+            res[item.value] = item.label;
+        });
+    }
     return res;
 }
 
@@ -103,8 +108,11 @@ async function allOpportunities0({ keyword, eligibilities }, pageSize, offset) {
         oppStatuses: 'posted|forecasted',
         sortBy: 'openDate|desc',
     });
-    const hits = resp.body.oppHits.filter((hit) => !hit.closeDate || hit.closeDate.match(/202[0-9]$/));
-    return hits;
+    if (resp && resp.body && resp.body.oppHits) {
+        const hits = resp.body.oppHits.filter((hit) => !hit.closeDate || hit.closeDate.match(/202[0-9]$/));
+        return hits;
+    }
+    return [];
 }
 
 async function allOpportunities(keywords, eligibilities) {
