@@ -66,7 +66,7 @@ async function getKeywords() {
     // get global keywords (agencyId === null)
     const rows = await db.getAgencyKeywords(null);
     return rows.map((row) => {
-        if (row.mode && row.search_term) {
+        if (row.mode) {
             return {
                 term: row.search_term,
                 insertMode: !!row.mode.match(/^autoinsert/),
