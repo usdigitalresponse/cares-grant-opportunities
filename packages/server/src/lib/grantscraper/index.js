@@ -47,17 +47,17 @@ async function syncGrants(hits) {
 }
 
 async function updateFromGrantsGov(keywords, elCodes) {
-    const existingRows = await db.getGrants();
+    // const existingRows = await db.getGrants();
     const previousHits = [];
-    for (const oppNum in existingRows) {
-        const id = parseInt(existingRows[oppNum].grant_id, 10);
-        if (id > 200 || Number.isNaN(id)) {
-            previousHits.push({
-                id: existingRows[oppNum].grant_id,
-                number: oppNum,
-            });
-        }
-    }
+    // for (const oppNum in existingRows) {
+    //     const id = parseInt(existingRows[oppNum].grant_id, 10);
+    //     if (id > 200 || Number.isNaN(id)) {
+    //         previousHits.push({
+    //             id: existingRows[oppNum].grant_id,
+    //             number: oppNum,
+    //         });
+    //     }
+    // }
     await grantsgov.allOpportunitiesOnlyMatchDescription(previousHits, keywords, elCodes, syncGrants);
     console.log('sync complete!');
 }
