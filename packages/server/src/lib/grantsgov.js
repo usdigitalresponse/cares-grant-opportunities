@@ -3,6 +3,8 @@
 const got = require('got');
 const delay = require('util').promisify(setTimeout);
 
+const BatchProcessor = require('./batchProcessor');
+
 const REQUEST_DELAY = process.env.GRANTS_SCRAPER_DELAY || 500;
 const HTTP_TIMEOUT = parseInt(process.env.GRANTS_SCRAPER_HTTP_TIMEOUT, 10) || 20000;
 
@@ -89,10 +91,10 @@ async function getEligibilities() {
     return res;
 }
 
-async function allOpportunities0(keyword, eligibilities, startRecordNum) {
-    console.log(`searching for ${keyword} @ ${startRecordNum}`);
+async function allOpportunities0({ keyword, eligibilities }, pageSize, offset) {
+    console.log(`searching for ${keyword} @ ${offset}`);
     const resp = await search({
-        startRecordNum,
+        startRecordNum: offset,
         keyword,
         dateRange: process.env.GRANTS_SCRAPER_DATE_RANGE || 56,
         eligibilities,
@@ -101,13 +103,8 @@ async function allOpportunities0(keyword, eligibilities, startRecordNum) {
         oppStatuses: 'posted|forecasted',
         sortBy: 'openDate|desc',
     });
-    const res = resp.body.oppHits.filter((hit) => !hit.closeDate || hit.closeDate.match(/202[0-9]$/));
-    if (startRecordNum + 25 < resp.body.hitCount) {
-        await delay(REQUEST_DELAY);
-        const hits = await allOpportunities0(keyword, eligibilities, startRecordNum + 25);
-        return res.concat(hits);
-    }
-    return res;
+    const hits = resp.body.oppHits.filter((hit) => !hit.closeDate || hit.closeDate.match(/202[0-9]$/));
+    return hits;
 }
 
 async function allOpportunities(keywords, eligibilities) {
@@ -126,43 +123,63 @@ async function allOpportunities(keywords, eligibilities) {
     return Object.values(results);
 }
 
+async function processGrants({
+    keyword, insertKeywords, insertAllKeywords, allKeywords, syncFn,
+}, grants) {
+    const grantsToSynch = [];
+    // eslint-disable-next-line no-restricted-syntax
+    for (let grant of grants) {
+        try {
+            await delay(REQUEST_DELAY);
+            await enrichHitWithDetails(allKeywords.slice(0), grant);
+            grant.searchKeywords = [keyword];
+        } catch (err) {
+            console.log(`attempted to enrich grant but failed with ${err}`);
+            grant = null;
+        }
+        if (grant) {
+            const matchingInsertKeywords = grant.matchingKeywords.filter((kw) => insertKeywords.indexOf(kw) >= 0);
+            const searchedInsertAllKeywords = grant.searchKeywords.filter((kw) => insertAllKeywords.indexOf(kw) >= 0);
+            if (matchingInsertKeywords.length > 0 || searchedInsertAllKeywords.length > 0) {
+                grantsToSynch.push(grant);
+            }
+        }
+    }
+    await syncFn(grantsToSynch);
+}
+
+async function synchGrants(insertKeywords, insertAllKeywords, allKeywords, eligibilities, syncFn) {
+    const batchProcessors = [];
+    // eslint-disable-next-line no-restricted-syntax
+    for (const keyword of allKeywords) {
+        const batchProcessor = new BatchProcessor({
+            pageSize: 10,
+            offset: 0,
+            runOnce: true,
+            sleepMs: REQUEST_DELAY,
+            fetchRecordsFn: allOpportunities0,
+            processRecordsFn: processGrants,
+            context: {
+                keyword,
+                eligibilities,
+                insertKeywords,
+                insertAllKeywords,
+                allKeywords,
+                syncFn,
+            },
+        });
+        batchProcessors.push(batchProcessor.start());
+    }
+    return Promise.all(batchProcessors);
+}
+
 // previous hits is array of [{id, number}]
 // all previous hits are always checked for updates to keywords
 async function allOpportunitiesOnlyMatchDescription(previousHits, keywords, eligibilities, syncFn) {
     const insertKeywords = keywords.filter((v) => v.insertMode).map((v) => v.term);
     const insertAllKeywords = keywords.filter((v) => v.insertMode && v.insertAll).map((v) => v.term);
     const allKeywords = keywords.map((v) => v.term);
-    const newHits = await allOpportunities(insertKeywords.slice(0), eligibilities);
-    const previousHitIds = {};
-    previousHits.forEach((hit) => {
-        previousHitIds[hit.id] = true;
-        if (newHits.filter((v) => v.number === hit.number).length === 0) {
-            hit.searchKeywords = ['(none)'];
-            newHits.push(hit);
-        }
-    });
-    let currentUnsyncResults = [];
-    for (const i in newHits) {
-        let hit = newHits[i];
-        try {
-            await enrichHitWithDetails(allKeywords.slice(0), hit);
-            await delay(REQUEST_DELAY);
-        } catch (err) {
-            console.log(`attempted to enrich hit but failed with ${err}`);
-            hit = null;
-        }
-        if (hit) {
-            const matchingInsertKeywords = hit.matchingKeywords.filter((kw) => insertKeywords.indexOf(kw) >= 0);
-            const searchedInsertAllKeywords = hit.searchKeywords.filter((kw) => insertAllKeywords.indexOf(kw) >= 0);
-            if (matchingInsertKeywords.length > 0 || searchedInsertAllKeywords.length > 0 || previousHitIds[hit.id]) {
-                currentUnsyncResults.push(hit);
-            }
-        }
-        if (currentUnsyncResults.length === 20) {
-            await syncFn(currentUnsyncResults);
-            currentUnsyncResults = [];
-        }
-    }
+    await synchGrants(insertKeywords, insertAllKeywords, allKeywords, eligibilities, syncFn);
 }
 
 module.exports = { allOpportunities, allOpportunitiesOnlyMatchDescription, getEligibilities };
