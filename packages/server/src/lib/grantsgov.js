@@ -13,7 +13,7 @@ function simplifyString(string) {
 }
 
 async function enrichHitWithDetails(keywords, hit) {
-    console.log(`[grantsgov] pulling description page for ${hit.number}`);
+    // console.log(`[grantsgov] pulling description page for ${hit.number}`);
     const resp = await got.post({
         url: 'https://www.grants.gov/grantsws/rest/opportunity/details',
         responseType: 'json',
@@ -47,7 +47,7 @@ async function enrichHitWithDetails(keywords, hit) {
                 simplifyString(desc).includes(simplifyString(kw))
         || simplifyString(resp.body.opportunityTitle).includes(simplifyString(kw))
             ) {
-                console.log(`matches ${kw}`);
+                // console.log(`matches ${kw}`);
                 hit.matchingKeywords.push(kw);
             }
         });
@@ -154,6 +154,11 @@ async function processGrants({
         }
     }
     await syncFn(grantsToSynch);
+    const used = process.memoryUsage();
+    for (const key in used) {
+        // eslint-disable-next-line no-mixed-operators
+        console.log(`${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
+    }
 }
 
 async function synchGrants(insertKeywords, insertAllKeywords, allKeywords, eligibilities, syncFn) {
