@@ -83,8 +83,14 @@ async function getEligibilities() {
     return enabledCodes.join('|');
 }
 
+let isRunning = false;
+
 async function run() {
+    if (isRunning) {
+        return;
+    }
     try {
+        isRunning = true;
         const res = await grantsgov.getEligibilities();
         const rows = Object.entries(res).map(([key, value]) => ({
             code: key,
@@ -101,6 +107,7 @@ async function run() {
     } catch (err) {
         console.error(err);
     }
+    isRunning = false;
 }
 
 module.exports = {
