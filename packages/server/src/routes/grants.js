@@ -5,16 +5,10 @@ const db = require('../db');
 const pdf = require('../lib/pdf');
 
 router.get('/', async (req, res) => {
-    const user = await db.getUser(req.signedCookies.userId);
-    const eligibilityCodes = await db.getAgencyEligibilityCodes(user.agency.id, { enabled: true });
-    const enabledECodes = eligibilityCodes.filter((e) => e.enabled);
-    const keywords = await db.getAgencyKeywords(user.agency.id);
+    const filters = await db.getFiltersForUserId(req.signedCookies.userId);
     const grants = await db.getGrants({
         ...req.query,
-        filters: {
-            eligibilityCodes: enabledECodes.map((c) => c.code),
-            keywords: keywords.map((c) => c.search_term),
-        },
+        filters,
     });
     res.json(grants);
 });

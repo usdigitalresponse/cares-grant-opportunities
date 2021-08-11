@@ -6,7 +6,9 @@ const db = require('../db');
 router.get('/', async (req, res) => {
     const result = {};
     if (req.query.totalGrants) {
+        const filters = await db.getFiltersForUserId(req.signedCookies.userId);
         result.totalGrants = await db.getTotalGrants();
+        result.totalGrantsMatchingFilters = await db.getTotalGrants({ filters });
     }
     if (req.query.totalViewedGrants) {
         result.totalViewedGrants = await db.getTotalViewedGrants();
