@@ -9,7 +9,8 @@ router.get('/', async (req, res) => {
     res.json(response);
 });
 
-router.put('/:id/thresholds', requireAdminUser, async (req, res) => {
+router.put('/:id', requireAdminUser, async (req, res) => {
+    // Currently, agencies are seeded into db; only thresholds are mutable.
     const { id } = req.params;
     const { warningThreshold, dangerThreshold } = req.body;
     const result = await setAgencyThresholds(id, warningThreshold, dangerThreshold);
