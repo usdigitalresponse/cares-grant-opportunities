@@ -15,9 +15,9 @@
           :state="!$v.formData.warningThreshold.$invalid"
           label="Close Date Warning Threshold"
           label-for="warningThreshold-input"
-          description="How many days out to show grant close dates with warning status"
           invalid-feedback="Warning Threshold must be 2 or greater"
         >
+        <template slot="description">How many days out to show grant close dates with <span class="text-warning">warning</span> status</template>
           <b-form-input
             autofocus
             id="warningThreshold-input"
@@ -31,9 +31,9 @@
         <b-form-group
           label="Close Date Danger Threshold"
           label-for="dangerThreshold-input"
-          description="How many days out to show grant close dates with danger status"
           invalid-feedback="Danger Threshold must be greater than zero and less than Warning Threshold"
         >
+        <template slot="description">How many days out to show grant close dates with <span class="text-danger">danger</span> status</template>
           <b-form-input
             id="dangerThreshold-input"
             type="number"
