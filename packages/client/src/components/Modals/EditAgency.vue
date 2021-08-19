@@ -13,10 +13,10 @@
       <form ref="form" @submit.stop.prevent="handleSubmit">
         <b-form-group
           :state="!$v.formData.warningThreshold.$invalid"
-          label="Close Date Warning Threshold"
           label-for="warningThreshold-input"
           invalid-feedback="Warning Threshold must be 2 or greater"
         >
+        <template slot="label">Close Date <span class="text-warning">Warning</span> Threshold</template>
         <template slot="description">How many days out to show grant close dates with <span class="text-warning">warning</span> status</template>
           <b-form-input
             autofocus
@@ -29,10 +29,10 @@
           ></b-form-input>
         </b-form-group>
         <b-form-group
-          label="Close Date Danger Threshold"
           label-for="dangerThreshold-input"
           invalid-feedback="Danger Threshold must be greater than zero and less than Warning Threshold"
         >
+        <template slot="label">Close Date <span class="text-danger">Danger</span> Threshold</template>
         <template slot="description">How many days out to show grant close dates with <span class="text-danger">danger</span> status</template>
           <b-form-input
             id="dangerThreshold-input"
