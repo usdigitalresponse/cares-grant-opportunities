@@ -16,12 +16,13 @@ export default {
     fetchAgencies({ commit }) {
       fetchApi.get('/api/agencies').then((data) => commit('SET_AGENCIES', data));
     },
-    updateThresholds(context, { agencyId, warningThreshold, dangerThreshold }) {
-      return fetchApi.put(`/api/agencies/${agencyId}`, {
+    async updateThresholds({ dispatch }, { agencyId, warningThreshold, dangerThreshold }) {
+      await fetchApi.put(`/api/agencies/${agencyId}`, {
         // Currently, agencies are seeded into db; only thresholds are mutable.
         warningThreshold,
         dangerThreshold,
       });
+      dispatch('fetchAgencies');
     },
   },
   mutations: {

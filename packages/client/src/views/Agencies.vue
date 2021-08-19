@@ -74,14 +74,6 @@ export default {
       }));
     },
   },
-  watch: {
-    editingAgency() {
-      if (!this.editingAgency) {
-        // Modal has just closed, so refresh data.
-        this.fetchAgencies();
-      }
-    },
-  },
   methods: {
     ...mapActions({
       fetchAgencies: 'agencies/fetchAgencies',
