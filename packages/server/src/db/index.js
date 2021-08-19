@@ -70,6 +70,8 @@ async function getUser(id) {
             'agencies.name as agency_name',
             'agencies.abbreviation as agency_abbreviation',
             'agencies.parent as agency_parent_id_id',
+            'agencies.warning_threshold as agency_warning_threshold',
+            'agencies.danger_threshold as agency_danger_threshold',
             'users.tags',
         )
         .leftJoin('roles', 'roles.id', 'users.role_id')
@@ -88,6 +90,8 @@ async function getUser(id) {
             name: user.agency_name,
             abbreviation: user.agency_abbreviation,
             agency_parent_id: user.agency_parent_id,
+            warning_threshold: user.agency_warning_threshold,
+            danger_threshold: user.agency_danger_threshold,
         };
     }
     return user;
@@ -208,12 +212,6 @@ async function getGrants({
                         }
                         if (filters.assignedToUser) {
                             qb.where(`${TABLES.assigned_grants_user}.user_id`, '=', filters.assignedToUser);
-                        }
-                        if (filters.aging) {
-                            const now = new Date();
-                            const days = process.env.VUE_APP_AGING_THRESHOLD_DAYS || 21;
-                            const threshold = new Date(now.valueOf() + days * 24 * 60 * 60 * 1000);
-                            qb.where(`${TABLES.grants}.close_date`, '<', threshold.toISOString());
                         }
                     },
                 );
@@ -381,6 +379,14 @@ function getAgencyKeywords(agencyId) {
         .where('agency_id', agencyId);
 }
 
+function setAgencyThresholds(id, warning_threshold, danger_threshold) {
+    return knex(TABLES.agencies)
+        .where({
+            id,
+        })
+        .update({ warning_threshold, danger_threshold });
+}
+
 async function createRecord(tableName, row) {
     return knex(tableName).insert(row);
 }
@@ -464,6 +470,7 @@ module.exports = {
     setAgencyEligibilityCodeEnabled,
     getKeywords,
     getAgencyKeywords,
+    setAgencyThresholds,
     createKeyword,
     deleteKeyword,
     getGrants,

@@ -16,6 +16,12 @@ export default {
     fetchAgencies({ commit }) {
       fetchApi.get('/api/agencies').then((data) => commit('SET_AGENCIES', data));
     },
+    updateThresholds(context, { agencyId, warningThreshold, dangerThreshold }) {
+      return fetchApi.put(`/api/agencies/${agencyId}/thresholds`, {
+        warningThreshold,
+        dangerThreshold,
+      });
+    },
   },
   mutations: {
     SET_AGENCIES(state, agencies) {
