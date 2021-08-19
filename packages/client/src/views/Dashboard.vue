@@ -1,8 +1,8 @@
 <template>
   <section class="m-4">
     <b-card-group columns>
-        <b-card bg-variant="secondary" text-variant="white" header="Total Grants Matching Filters" class="text-center">
-          <h3>{{totalGrantsMatchingFilters}} of {{totalGrants}}</h3>
+        <b-card bg-variant="secondary" text-variant="white" header="Total Grants Matching Search Criteria" class="text-center">
+          <h3>{{totalGrantsMatchingAgencyCriteria}} of {{totalGrants}}</h3>
           <b-link class="stretched-link" to="/grants" />
         </b-card>
         <b-card bg-variant="secondary" text-variant="white" header="Total Viewed Grants" class="text-center">
@@ -64,7 +64,7 @@ export default {
   computed: {
     ...mapGetters({
       totalGrants: 'dashboard/totalGrants',
-      totalGrantsMatchingFilters: 'dashboard/totalGrantsMatchingFilters',
+      totalGrantsMatchingAgencyCriteria: 'dashboard/totalGrantsMatchingAgencyCriteria',
       totalViewedGrants: 'dashboard/totalViewedGrants',
       totalInterestedGrants: 'dashboard/totalInterestedGrants',
       totalGrantsBetweenDates: 'dashboard/totalGrantsBetweenDates',

@@ -1,13 +1,13 @@
-function whereFiltersMatch(qb, filters) {
-    if (filters?.eligibilityCodes) {
-        qb.where('eligibility_codes', '~', filters.eligibilityCodes.join('|'));
+function whereAgencyCriteriaMatch(qb, criteria) {
+    if (criteria?.eligibilityCodes) {
+        qb.where('eligibility_codes', '~', criteria.eligibilityCodes.join('|'));
     }
 
-    if (filters?.keywords) {
-        qb.where('description', '~*', filters.keywords.join('|'));
+    if (criteria?.keywords) {
+        qb.where('description', '~*', criteria.keywords.join('|'));
     }
 }
 
 module.exports = {
-    whereFiltersMatch,
+    whereAgencyCriteriaMatch,
 }

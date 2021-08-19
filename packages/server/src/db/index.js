@@ -94,7 +94,7 @@ async function getUser(id) {
     return user;
 }
 
-async function getFiltersForUserId(userId) {
+async function getAgencyCriteriaForUserId(userId) {
     const user = await getUser(userId);
     const eligibilityCodes = await getAgencyEligibilityCodes(user.agency.id);
     const enabledECodes = eligibilityCodes.filter((e) => e.enabled);
@@ -196,13 +196,30 @@ async function getGrants({
         .modify((queryBuilder) => {
             if (searchTerm && searchTerm !== 'null') {
                 queryBuilder.andWhere(
-                    (qb) => qb.where('grant_id', '~*', searchTerm)
-                        .orWhere('grant_number', '~*', searchTerm)
-                        .orWhere('title', '~*', searchTerm),
+                    (qb) => qb.where(`${TABLES.grants}.grant_id`, '~*', searchTerm)
+                        .orWhere(`${TABLES.grants}.grant_number`, '~*', searchTerm)
+                        .orWhere(`${TABLES.grants}.title`, '~*', searchTerm),
                 );
             }
             if (filters) {
-                helpers.whereFiltersMatch(queryBuilder, filters);
+                if (filters.interestedByUser) {
+                    queryBuilder.join(TABLES.grants_interested, `${TABLES.grants}.grant_id`, `${TABLES.grants_interested}.grant_id`);
+                }
+                if (filters.assignedToUser) {
+                    queryBuilder.join(TABLES.assigned_grants_user, `${TABLES.grants}.grant_id`, `${TABLES.assigned_grants_user}.grant_id`);
+                }
+                queryBuilder.andWhere(
+                    (qb) => {
+                        helpers.whereAgencyCriteriaMatch(qb, filters.agencyCriteria);
+
+                        if (filters.interestedByUser) {
+                            qb.where(`${TABLES.grants_interested}.user_id`, '=', filters.interestedByUser);
+                        }
+                        if (filters.assignedToUser) {
+                            qb.where(`${TABLES.assigned_grants_user}.user_id`, '=', filters.assignedToUser);
+                        }
+                    },
+                );
             }
 
             if (orderBy && orderBy !== 'undefined') {
@@ -225,11 +242,13 @@ async function getGrants({
             }
         })
         .paginate({ currentPage, perPage, isLengthAware: true });
+
     const viewedBy = await knex(TABLES.agencies)
         .join(TABLES.grants_viewed, `${TABLES.agencies}.id`, '=', `${TABLES.grants_viewed}.agency_id`)
         .whereIn('grant_id', data.map((grant) => grant.grant_id))
         .select(`${TABLES.grants_viewed}.grant_id`, `${TABLES.grants_viewed}.agency_id`, `${TABLES.agencies}.name as agency_name`, `${TABLES.agencies}.abbreviation as agency_abbreviation`);
     const interestedBy = await getInterestedAgencies({ grantIds: data.map((grant) => grant.grant_id) });
+
     const dataWithAgency = data.map((grant) => {
         const viewedByAgencies = viewedBy.filter((viewed) => viewed.grant_id === grant.grant_id);
         const agenciesInterested = interestedBy.filter((intested) => intested.grant_id === grant.grant_id);
@@ -249,8 +268,8 @@ async function getGrant({ grantId }) {
     return results[0];
 }
 
-async function getTotalGrants({ filters } = {}) {
-    const rows = await knex(TABLES.grants).modify(helpers.whereFiltersMatch, filters).count();
+async function getTotalGrants({ agencyCriteria } = {}) {
+    const rows = await knex(TABLES.grants).modify(helpers.whereAgencyCriteriaMatch, agencyCriteria).count();
     return rows[0].count;
 }
 
@@ -288,6 +307,32 @@ function markGrantAsViewed({ grantId, agencyId, userId }) {
     return knex(TABLES.grants_viewed)
         .insert({ agency_id: agencyId, grant_id: grantId, user_id: userId });
 }
+
+function getGrantAssignedUsers({ grantId }) {
+    return knex(TABLES.assigned_grants_user)
+        .join(TABLES.users, `${TABLES.users}.id`, '=', `${TABLES.assigned_grants_user}.user_id`)
+        .where({ grant_id: grantId });
+}
+
+function assignGrantsToUsers({ grantId, userIds, userId }) {
+    const insertPayload = userIds.map((uId) => ({
+        user_id: uId,
+        grant_id: grantId,
+        assigned_by: userId,
+    }));
+    return knex(TABLES.assigned_grants_user)
+        .insert(insertPayload)
+        .onConflict(['user_id', 'grant_id'])
+        .ignore();
+}
+
+function unassignUsersToGrant({ grantId, userIds }) {
+    const deleteWhere = userIds.map((uId) => ([uId, grantId]));
+    return knex(TABLES.assigned_grants_user)
+        .whereIn(['user_id', 'grant_id'], deleteWhere)
+        .delete();
+}
+
 function getInterestedAgencies({ grantIds }) {
     return knex(TABLES.agencies)
         .join(TABLES.grants_interested, `${TABLES.agencies}.id`, '=', `${TABLES.grants_interested}.agency_id`)
@@ -414,7 +459,7 @@ module.exports = {
     createUser,
     deleteUser,
     getUser,
-    getFiltersForUserId,
+    getAgencyCriteriaForUserId,
     getRoles,
     createAccessToken,
     getAccessToken,
@@ -437,6 +482,9 @@ module.exports = {
     getInterestedAgencies,
     getInterestedCodes,
     markGrantAsInterested,
+    getGrantAssignedUsers,
+    assignGrantsToUsers,
+    unassignUsersToGrant,
     getElegibilityCodes,
     sync,
     getAllRows,
