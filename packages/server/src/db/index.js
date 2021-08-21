@@ -2,7 +2,17 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable guard-for-in */
 /* eslint-disable no-restricted-syntax */
-const { v4 } = require('uuid');
+// const { v4 } = require('uuid');
+let v4;
+try {
+    // eslint-disable-next-line global-require
+    const crypto = require('crypto');
+    v4 = crypto.randomUUID;
+} catch (err) {
+    console.log('crypto support is disabled!');
+    // eslint-disable-next-line global-require
+    v4 = require('uuid').v4;
+}
 
 const knex = require('./connection');
 const { TABLES } = require('./constants');
