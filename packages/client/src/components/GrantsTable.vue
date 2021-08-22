@@ -60,7 +60,6 @@ export default {
   props: {
     showInterested: Boolean,
     showAssigned: Boolean,
-    showAging: Boolean,
   },
   data() {
     return {
@@ -131,6 +130,7 @@ export default {
     ...mapGetters({
       grants: 'grants/grants',
       grantsPagination: 'grants/grantsPagination',
+      agency: 'users/agency',
     }),
     totalRows() {
       return this.grantsPagination ? this.grantsPagination.total : 0;
@@ -139,17 +139,10 @@ export default {
       return this.grantsPagination ? this.grantsPagination.lastPage : 0;
     },
     formattedGrants() {
-      function setCellVariants(grant) {
-        const agingThreshold = (process.env.VUE_APP_AGING_THRESHOLD_DAYS || 21) * 24 * 60 * 60 * 1000;
-        const result = {};
-        const diff = new Date(grant.close_date) - new Date();
-        if (diff <= 0) {
-          result.close_date = 'danger';
-        } else if (diff < agingThreshold) {
-          result.close_date = 'warning';
-        }
-        return result;
-      }
+      const DAYS_TO_MILLISECS = 24 * 60 * 60 * 1000;
+      const warningThreshold = (this.agency.warning_threshold || 30) * DAYS_TO_MILLISECS;
+      const dangerThreshold = (this.agency.danger_threshold || 15) * DAYS_TO_MILLISECS;
+      const now = new Date();
 
       return this.grants.map((grant) => ({
         ...grant,
@@ -160,7 +153,16 @@ export default {
         close_date: new Date(grant.close_date).toLocaleDateString('en-US'),
         created_at: new Date(grant.created_at).toLocaleString(),
         updated_at: new Date(grant.updated_at).toLocaleString(),
-        _cellVariants: setCellVariants(grant),
+        _cellVariants: (() => {
+          const diff = new Date(grant.close_date) - now;
+          if (diff <= dangerThreshold) {
+            return { close_date: 'danger' };
+          }
+          if (diff <= warningThreshold) {
+            return { close_date: 'warning' };
+          }
+          return {};
+        })(),
       }));
     },
   },
@@ -205,7 +207,6 @@ export default {
           searchTerm: this.debouncedSearchInput,
           interestedByMe: this.showInterested,
           assignedToMe: this.showAssigned,
-          aging: this.showAging,
         });
       } catch (e) {
         console.log(e);
