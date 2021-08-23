@@ -394,7 +394,7 @@ function setAgencyThresholds(id, warning_threshold, danger_threshold) {
         .where({
             id,
         })
-        .update({ warning_threshold, danger_threshold });
+        .update({ warning_threshold, danger_threshold }, ['id', 'warning_threshold', 'danger_threshold']);
 }
 
 async function getGrantActivity({ grantId }) {

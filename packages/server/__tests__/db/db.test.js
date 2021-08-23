@@ -56,4 +56,39 @@ describe('db', () => {
             expect(result.keywords[0]).to.equal(fixtures.keywords.accountancyCovid.search_term);
         });
     });
+
+    context('setAgencyThresholds', () => {
+        it('stores warning and danger thresholds for an agency', async () => {
+            const expected = {
+                id: fixtures.agencies.accountancy.id,
+                warning_threshold: 1,
+                danger_threshold: 2,
+            };
+
+            const result = await db.setAgencyThresholds(expected.id, expected.warning_threshold, expected.danger_threshold);
+            expect(result).to.be.an('array').with.lengthOf(1);
+            expect(result[0]).to.deep.include(expected);
+        });
+    });
+
+    context('getGrantActivity', () => {
+        it('gets views, interest, and assignments for a grant', async () => {
+            const expectedView = {
+                name: fixtures.users.adminUser.name,
+                description: 'Viewed',
+                elapsed_days: 0,
+            };
+
+            const expectedInterest = {
+                name: fixtures.users.staffUser.name,
+                description: 'Interested: Not applicable to needs/goals',
+                elapsed_days: 0,
+            };
+
+            const result = await db.getGrantActivity({ grantId: fixtures.grants.earFellowship.grant_id });
+            expect(result).to.be.an('array').with.lengthOf(2);
+            expect(result[0]).to.deep.include(expectedView);
+            expect(result[1]).to.deep.include(expectedInterest);
+        });
+    });
 });

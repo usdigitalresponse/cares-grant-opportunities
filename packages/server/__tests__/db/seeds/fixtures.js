@@ -134,10 +134,35 @@ const grants = {
     },
 };
 
+const grantsViewed = {
+    activity: {
+        agency_id: agencies.accountancy.id,
+        grant_id: grants.earFellowship.grant_id,
+        // created_at
+        // updated_at
+        user_id: 1, // users.adminUser.id,
+    },
+};
+
+const grantsInterested = {
+    activity: {
+        agency_id: agencies.accountancy.id,
+        grant_id: grants.earFellowship.grant_id,
+        user_id: 2, // users.staffUser.id,
+        // created_at
+        // updated_at
+        interested_code_id: interestedCodes.notApplicable.id,
+    },
+};
+
 module.exports = {
     users,
     agencyEligibilityCodes,
     keywords,
+    agencies,
+    grants,
+    grantsViewed,
+    grantsInterested,
 };
 
 module.exports.seed = async (knex) => {
@@ -152,4 +177,6 @@ module.exports.seed = async (knex) => {
     await knex(TABLES.eligibility_codes).insert(Object.values(eligibilityCodes));
     await knex(TABLES.agency_eligibility_codes).insert(Object.values(agencyEligibilityCodes));
     await knex(TABLES.grants).insert(Object.values(grants));
+    await knex(TABLES.grants_viewed).insert(Object.values(grantsViewed));
+    await knex(TABLES.grants_interested).insert(Object.values(grantsInterested));
 };
