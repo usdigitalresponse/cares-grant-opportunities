@@ -96,8 +96,21 @@
         </b-button>
       </template>
     </b-table>
+
+      <b-row>
+        <b-col>
+          <h4>Activity</h4>
+        </b-col>
+      </b-row>
+      <br/>
+     <b-table
+        :items="activityItems"
+        :fields="activityFields"
+      >
+    </b-table>
     </div>
     </b-modal>
+
 </template>
 
 <script>
@@ -149,8 +162,24 @@ export default {
         },
         { key: 'actions', label: 'Actions' },
       ],
+      activityFields: [
+        {
+          key: 'name',
+        },
+        {
+          key: 'description',
+        },
+        {
+          key: 'created_at',
+          label: 'Date',
+        },
+        {
+          key: 'elapsed_days',
+        },
+      ],
       assignedUsers: [],
       selectedUsers: [],
+      activityItems: [],
       selectedInterestedCode: null,
       searchInput: null,
       debouncedSearchInput: null,
@@ -189,6 +218,7 @@ export default {
           this.markGrantAsViewed();
         }
         this.assignedUsers = await this.getGrantAssignedUsers({ grantId: this.selectedGrant.grant_id });
+        this.activityItems = await this.getGrantActivity({ grantId: this.selectedGrant.grant_id });
       }
     },
   },
@@ -198,6 +228,7 @@ export default {
       generateGrantForm: 'grants/generateGrantForm',
       markGrantAsInterestedAction: 'grants/markGrantAsInterested',
       getGrantAssignedUsers: 'grants/getGrantAssignedUsers',
+      getGrantActivity: 'grants/getGrantActivity',
       assignUsersToGrantAction: 'grants/assignUsersToGrant',
       unassignUsersToGrantAction: 'grants/unassignUsersToGrant',
       fetchUsers: 'users/fetchUsers',

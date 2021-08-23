@@ -52,6 +52,9 @@ export default {
         userIds,
       });
     },
+    getGrantActivity(context, { grantId }) {
+      return fetchApi.get(`/api/grants/${grantId}/activity`);
+    },
     async generateGrantForm(context, { grantId }) {
       const response = await fetchApi.get(`/api/grants/${grantId}/form/nevada_spoc`);
       const link = document.createElement('a');

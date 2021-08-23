@@ -74,6 +74,12 @@ router.put('/:grantId/interested/:agencyId', async (req, res) => {
     res.json(interestedAgencies);
 });
 
+router.get('/:grantId/activity', async (req, res) => {
+    const { grantId } = req.params;
+    const response = await db.getGrantActivity({ grantId });
+    res.json(response);
+});
+
 const formFields = {
     nevada_spoc: {
         PDFTextField: {

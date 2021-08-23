@@ -397,6 +397,34 @@ function setAgencyThresholds(id, warning_threshold, danger_threshold) {
         .update({ warning_threshold, danger_threshold });
 }
 
+async function getGrantActivity({ grantId }) {
+    return knex.raw(`
+      SELECT users.name, 'Viewed' as description, grants_viewed.created_at FROM grants_viewed
+      LEFT JOIN users ON grants_viewed.user_id = users.id
+      WHERE grant_id = ?
+      UNION
+      SELECT users.name, concat('Interested: ', interested_codes.name) as description, grants_interested.created_at FROM grants_interested
+      LEFT JOIN users ON grants_interested.user_id = users.id
+      LEFT JOIN interested_codes ON grants_interested.interested_code_id = interested_codes.id
+      WHERE grant_id = ?
+      UNION
+      SELECT a.name, concat('Assigned ', b.name) as description, assigned_grants_user.created_at FROM assigned_grants_user
+      LEFT JOIN users a ON assigned_grants_user.assigned_by = a.id
+      LEFT JOIN users b ON assigned_grants_user.user_id = b.id
+      WHERE grant_id = ?
+      ORDER BY created_at;
+    `, [grantId, grantId, grantId])
+        .then((resp) => {
+            const DAYS_TO_MILLISECS = 24 * 60 * 60 * 1000;
+            return resp.rows.map((row) => ({
+                ...row,
+                // created_at: new Date(row.created_at).toLocaleDateString('en-US'),
+                elapsed_days: Math.floor(((row.created_at - resp.rows[0].created_at)
+                    / DAYS_TO_MILLISECS)),
+            }));
+        });
+}
+
 async function createRecord(tableName, row) {
     return knex(tableName).insert(row);
 }
@@ -499,6 +527,7 @@ module.exports = {
     assignGrantsToUsers,
     unassignUsersToGrant,
     getElegibilityCodes,
+    getGrantActivity,
     sync,
     getAllRows,
     close,
