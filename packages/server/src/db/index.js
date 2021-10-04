@@ -8,6 +8,9 @@ try {
     const crypto = require('crypto');
     v4 = crypto.randomUUID;
 } catch (err) {
+    v4= null
+}
+if ( !v4 ){
     console.log('Node lacks crypto support!');
     // eslint-disable-next-line global-require
     v4 = require('uuid').v4;
