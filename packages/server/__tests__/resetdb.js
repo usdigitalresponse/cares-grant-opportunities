@@ -3,6 +3,10 @@ const { exec } = require('child_process');
 
 let { log } = console;
 let { dir } = console;
+dir(__dirname);
+const knexfilePath = path.resolve(__dirname, '../knexfile.js');
+// eslint-disable-next-line import/no-dynamic-require
+const knexfile = require(path.resolve(__dirname, '../knexfile.js'));
 
 function execShellCommand(cmd, options = {}) {
     return new Promise((resolve, reject) => {
@@ -26,10 +30,7 @@ async function resetDB({ verbose = false }) {
         dir = () => { };
     }
 
-    dir(__dirname);
-    const knexfile = path.resolve(__dirname, '../knexfile.js');
-
-    let url = process.env.POSTGRES_URL;
+    let url = knexfile.test.connection;
     const dbName = url.substring(url.lastIndexOf('/') + 1);
     url = url.substring(0, url.lastIndexOf('/'));
 
@@ -50,7 +51,7 @@ async function resetDB({ verbose = false }) {
         await execShellCommand(`psql ${url} -c "CREATE DATABASE ${dbName}"`);
         console.log(`Seeding database ${dbName}`);
         await execShellCommand(`yarn knex migrate:latest`, options);
-        await execShellCommand(`yarn knex --knexfile ${knexfile} seed:run`, options);
+        await execShellCommand(`yarn knex --knexfile ${knexfilePath} seed:run`, options);
     } catch (err) {
         console.dir(err);
         return err;
