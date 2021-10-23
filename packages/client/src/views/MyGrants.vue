@@ -6,9 +6,6 @@
     <b-tab title="Assigned">
       <GrantsTable :showAssignedToAgency="loggedInUser.agency.id"/>
     </b-tab>
-    <b-tab title="Aging">
-      <GrantsTable :showAging="true"/>
-    </b-tab>
   </b-tabs>
 </template>
 

@@ -29,8 +29,9 @@ export default {
       const query = Object.entries({
         currentPage, perPage, orderBy, searchTerm, interestedByMe, assignedToAgency, aging,
       })
+        // filter out undefined and nulls since api expects parameters not present as undefined
         // eslint-disable-next-line no-unused-vars
-        .filter(([key, value]) => value)
+        .filter(([key, value]) => value || typeof value === 'number')
         .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
         .join('&');
       return fetchApi.get(`/api/grants?${query}`)
