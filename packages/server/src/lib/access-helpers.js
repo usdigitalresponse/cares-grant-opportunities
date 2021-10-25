@@ -1,5 +1,9 @@
 const { getUser } = require('../db');
 
+function isPartOfAgency(agencies, agencyId) {
+    return agencies.find((s) => s.id === Number(agencyId));
+}
+
 /**
  * Determine if a user is authorized for an agency.
  *
@@ -9,7 +13,7 @@ const { getUser } = require('../db');
  */
 async function isAuthorized(userId, agencyId) {
     const user = await getUser(userId);
-    return user.agency.subagencies.includes(agencyId);
+    return isPartOfAgency(user.agency.subagencies, agencyId);
 }
 
 async function requireAdminUser(req, res, next) {
@@ -83,5 +87,5 @@ async function requireUser(req, res, next) {
 }
 
 module.exports = {
-    requireAdminUser, requireUser, isAuthorized,
+    requireAdminUser, requireUser, isAuthorized, isPartOfAgency,
 };

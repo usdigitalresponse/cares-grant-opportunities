@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const pdf = require('../lib/pdf');
-const { requireUser } = require('../lib/access-helpers');
+const { requireUser, isPartOfAgency } = require('../lib/access-helpers');
 
 router.get('/', requireUser, async (req, res) => {
     let agencyCriteria;
@@ -16,7 +16,7 @@ router.get('/', requireUser, async (req, res) => {
         agencies.push(req.query.agency);
     } else {
         const user = await db.getUser(req.signedCookies.userId);
-        agencies = user.agency.subagencies;
+        agencies = user.agency.subagencies.map((s) => s.id);
     }
     const grants = await db.getGrants({
         ...req.query,
@@ -33,7 +33,7 @@ router.get('/', requireUser, async (req, res) => {
 router.put('/:grantId/view/:agencyId', requireUser, async (req, res) => {
     const { agencyId, grantId } = req.params;
     const user = await db.getUser(req.signedCookies.userId);
-    if (!user.agency.subagencies.includes(Number(agencyId))) {
+    if (!isPartOfAgency(user.agency.subagencies, agencyId)) {
         res.sendStatus(403);
         return;
     }
@@ -48,7 +48,7 @@ router.get('/:grantId/assign/agencies', requireUser, async (req, res) => {
         agencies.push(req.query.agency);
     } else {
         const user = await db.getUser(req.signedCookies.userId);
-        agencies = user.agency.subagencies;
+        agencies = user.agency.subagencies.map((s) => s.id);
     }
     const response = await db.getGrantAssignedAgencies({ grantId, agencies });
     res.json(response);
@@ -58,7 +58,7 @@ router.put('/:grantId/assign/agencies', requireUser, async (req, res) => {
     const user = await db.getUser(req.signedCookies.userId);
     const { grantId } = req.params;
     const { agencyIds } = req.body;
-    if (!agencyIds.every((agencyId) => user.agency.subagencies.includes(agencyId))) {
+    if (!agencyIds.every((agencyId) => isPartOfAgency(user.agency.subagencies, agencyId))) {
         res.sendStatus(403);
         return;
     }
@@ -71,7 +71,7 @@ router.delete('/:grantId/assign/agencies', requireUser, async (req, res) => {
     const user = await db.getUser(req.signedCookies.userId);
     const { grantId } = req.params;
     const { agencyIds } = req.body;
-    if (!agencyIds.every((agencyId) => user.agency.subagencies.includes(agencyId))) {
+    if (!agencyIds.every((agencyId) => isPartOfAgency(user.agency.subagencies, agencyId))) {
         res.sendStatus(403);
         return;
     }
@@ -87,7 +87,7 @@ router.get('/:grantId/interested', requireUser, async (req, res) => {
         agencies.push(req.query.agency);
     } else {
         const user = await db.getUser(req.signedCookies.userId);
-        agencies = user.agency.subagencies;
+        agencies = user.agency.subagencies.map((s) => s.id);
     }
     const interestedAgencies = await db.getInterestedAgencies({ grantIds: [grantId], agencies });
     res.json(interestedAgencies);
@@ -101,7 +101,7 @@ router.put('/:grantId/interested/:agencyId', requireUser, async (req, res) => {
         interestedCode = req.body.interestedCode;
     }
 
-    if (!user.agency.subagencies.includes(Number(agencyId))) {
+    if (!isPartOfAgency(user.agency.subagencies, agencyId)) {
         res.sendStatus(403);
         return;
     }
