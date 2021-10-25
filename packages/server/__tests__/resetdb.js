@@ -50,7 +50,7 @@ async function resetDB({ verbose = false }) {
         console.log(`Re-creating database ${dbName}`);
         await execShellCommand(`psql ${url} -c "CREATE DATABASE ${dbName}"`);
         console.log(`Seeding database ${dbName}`);
-        await execShellCommand(`yarn knex migrate:latest`, options);
+        await execShellCommand(`yarn knex --knexfile ${knexfilePath} migrate:latest`, options);
         await execShellCommand(`yarn knex --knexfile ${knexfilePath} seed:run`, options);
     } catch (err) {
         console.dir(err);

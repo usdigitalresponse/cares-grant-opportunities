@@ -4,7 +4,7 @@ require('dotenv').config();
 
 const knex = require('knex')({
     client: 'pg',
-    connection: process.env.POSTGRES_URL,
+    connection: process.env.POSTGRES_TEST_URL,
 });
 
 async function getSessionCookie(email) {
