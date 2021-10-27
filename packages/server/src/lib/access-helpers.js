@@ -29,16 +29,19 @@ async function requireAdminUser(req, res, next) {
     }
 
     // Depending on the request, an agency ID may be specified in zero or one of:
-    //  the query string: ?agency=...
+    //  a header: angecy-id
+    //  a query string: ?agency=...
     //  a route parameter :agency
     //  a route parameter :agencyId
     //  a body field named 'agency'
+    const headerAgency = Number(req.headers['agency-id']);
     const queryAgency = Number(req.query.agency);
     const paramAgency = Number(req.params.agency);
     const paramAgencyId = Number(req.params.agencyId);
     const bodyAgency = Number(req.body.agency);
 
     let count = 0;
+    if (!Number.isNaN(headerAgency)) count += 1;
     if (!Number.isNaN(queryAgency)) count += 1;
     if (!Number.isNaN(paramAgency)) count += 1;
     if (!Number.isNaN(paramAgencyId)) count += 1;
@@ -49,7 +52,7 @@ async function requireAdminUser(req, res, next) {
         return;
     } if (count === 1) {
         // Is this user an admin of the specified agency?
-        const requestAgency = queryAgency || paramAgency || paramAgencyId || bodyAgency || 0;
+        const requestAgency = headerAgency || queryAgency || paramAgency || paramAgencyId || bodyAgency || 0;
         const authorized = await isAuthorized(req.signedCookies.userId, requestAgency);
         if (!authorized) {
             res.sendStatus(403);
