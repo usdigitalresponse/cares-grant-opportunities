@@ -48,11 +48,6 @@ export default {
     showModal() {
       this.$bvModal.show('profile-settings-modal');
     },
-    // loggedInUser() {
-    //   if(this.loggedInUser) {
-
-    //   }
-    // }
   },
   computed: {
     ...mapGetters({
