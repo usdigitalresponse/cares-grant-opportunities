@@ -48,6 +48,9 @@ export default {
     showModal() {
       this.$bvModal.show('profile-settings-modal');
     },
+    settingsSelectedAgency() {
+      this.formData.selectedAgency = this.settingsSelectedAgency;
+    },
   },
   computed: {
     ...mapGetters({
@@ -62,7 +65,7 @@ export default {
     },
   },
   mounted() {
-    this.formData.selectedAgency = this.agencies.find((a) => a.id.toString() === this.settingsSelectedAgency.toString());
+    this.formData.selectedAgency = this.settingsSelectedAgency;
   },
   methods: {
     ...mapActions({

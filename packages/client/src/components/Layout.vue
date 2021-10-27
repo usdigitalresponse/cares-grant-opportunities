@@ -9,7 +9,7 @@
         <b-navbar-nav class="ml-auto">
 
           <b-nav-text>
-            <b-badge>{{agency ? agency.name : ''}}</b-badge>
+            <b-badge>{{selectedAgency ? selectedAgency.name : ''}}</b-badge>
           </b-nav-text>
 
           <b-nav-item-dropdown right v-if="loggedInUser">
@@ -60,6 +60,7 @@ export default {
       agency: 'users/agency',
       loggedInUser: 'users/loggedInUser',
       userRole: 'users/userRole',
+      selectedAgency: 'users/selectedAgency',
     }),
   },
   methods: {

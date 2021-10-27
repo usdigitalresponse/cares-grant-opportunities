@@ -4,7 +4,7 @@ function initialState() {
   return {
     loggedInUser: null,
     settings: {
-      selectedAgency: null,
+      selectedAgencyId: null,
     },
     users: [],
   };
@@ -18,11 +18,29 @@ export default {
     users: (state) => state.users,
     userRole: (state, getters) => (getters.loggedInUser ? getters.loggedInUser.role.name : null),
     agency: (state, getters) => (getters.loggedInUser ? getters.loggedInUser.agency : null),
-    selectedAgency: (state) => state.settings.selectedAgency || localStorage.getItem('selectedAgency'),
+    selectedAgencyId: (state, getters) => {
+      if (state.settings.selectedAgencyId) {
+        return state.settings.selectedAgencyId;
+      }
+      if (localStorage.getItem('selectedAgencyId')) {
+        return localStorage.getItem('selectedAgencyId');
+      }
+      if (getters.loggedInUser) {
+        return getters.loggedInUser.agency.id.toString();
+      }
+      return '';
+    },
+    selectedAgency: (state, getters) => {
+      if (!getters.loggedInUser) {
+        return null;
+      }
+      const agencyId = getters.selectedAgencyId;
+      return getters.loggedInUser.agency.subagencies.find((a) => a.id.toString() === agencyId.toString());
+    },
   },
   actions: {
     login({ dispatch, commit, getters }, user) {
-      dispatch('changeSelectedAgency', getters.selectedAgency);
+      dispatch('changeSelectedAgency', getters.selectedAgencyId);
       commit('SET_LOGGED_IN_USER', user);
     },
     async logout({ commit }) {
@@ -32,7 +50,7 @@ export default {
     },
     async changeSelectedAgency({ commit }, agencyId) {
       commit('SET_SELECTED_AGENCY', agencyId);
-      localStorage.setItem('selectedAgency', agencyId);
+      localStorage.setItem('selectedAgencyId', agencyId);
     },
     fetchUsers({ commit }) {
       return fetchApi.get('/api/users')
@@ -55,7 +73,7 @@ export default {
       state.users = users;
     },
     SET_SELECTED_AGENCY(state, agencyId) {
-      state.settings.selectedAgency = agencyId;
+      state.settings.selectedAgencyId = !Number.isNaN(agencyId) ? agencyId.toString() : agencyId;
     },
   },
 };

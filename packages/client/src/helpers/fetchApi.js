@@ -2,7 +2,7 @@ import store from '@/store';
 
 function getDefaultHeaders() {
   const headers = new Headers();
-  headers.append('agency-id', store.getters['users/selectedAgency']);
+  headers.append('agency-id', store.getters['users/selectedAgencyId']);
   headers.append('Content-Type', 'application/json');
   return headers;
 }
