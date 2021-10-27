@@ -3,6 +3,9 @@ const fetchApi = require('@/helpers/fetchApi');
 function initialState() {
   return {
     loggedInUser: null,
+    settings: {
+      selectedAgency: null,
+    },
     users: [],
   };
 }
@@ -15,15 +18,21 @@ export default {
     users: (state) => state.users,
     userRole: (state, getters) => (getters.loggedInUser ? getters.loggedInUser.role.name : null),
     agency: (state, getters) => (getters.loggedInUser ? getters.loggedInUser.agency : null),
+    selectedAgency: (state) => state.settings.selectedAgency || localStorage.getItem('selectedAgency'),
   },
   actions: {
-    login({ commit }, user) {
+    login({ dispatch, commit, getters }, user) {
+      dispatch('changeSelectedAgency', getters.selectedAgency);
       commit('SET_LOGGED_IN_USER', user);
     },
-    logout({ commit }) {
-      return fetchApi.get('/api/sessions/logout')
-        .then(() => commit('SET_LOGGED_IN_USER', null))
-        .catch(() => commit('SET_LOGGED_IN_USER', null));
+    async logout({ commit }) {
+      await fetchApi.get('/api/sessions/logout');
+      commit('SET_LOGGED_IN_USER', null);
+      localStorage.setItem('selectedAgency', null);
+    },
+    async changeSelectedAgency({ commit }, agencyId) {
+      commit('SET_SELECTED_AGENCY', agencyId);
+      localStorage.setItem('selectedAgency', agencyId);
     },
     fetchUsers({ commit }) {
       return fetchApi.get('/api/users')
@@ -44,6 +53,9 @@ export default {
     },
     SET_USERS(state, users) {
       state.users = users;
+    },
+    SET_SELECTED_AGENCY(state, agencyId) {
+      state.settings.selectedAgency = agencyId;
     },
   },
 };

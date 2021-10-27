@@ -114,9 +114,9 @@ async function getUser(id) {
         let subagencies = [];
         if (user.role.name === 'admin') {
             subagencies = await getAgencies(user.agency_id);
+        } else {
+            subagencies.push({ ...user.agency });
         }
-        // push the current agency
-        subagencies.push({ ...user.agency });
         user.agency.subagencies = subagencies;
     }
     return user;
