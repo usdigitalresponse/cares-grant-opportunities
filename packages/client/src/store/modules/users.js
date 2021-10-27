@@ -46,7 +46,7 @@ export default {
     async logout({ commit }) {
       await fetchApi.get('/api/sessions/logout');
       commit('SET_LOGGED_IN_USER', null);
-      localStorage.setItem('selectedAgency', null);
+      localStorage.removeItem('selectedAgencyId');
     },
     async changeSelectedAgency({ commit }, agencyId) {
       commit('SET_SELECTED_AGENCY', agencyId);

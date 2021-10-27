@@ -31,14 +31,12 @@ async function resetDB({ verbose = false }) {
     }
 
     let url = knexfile.test.connection;
-    const dbName = url.substring(url.lastIndexOf('/') + 1);
-    url = url.substring(0, url.lastIndexOf('/'));
-
-    if (!process.env.OK_TO_DROP_DB || process.env.OK_TO_DROP_DB !== 'TRUE') {
-        console.log(`For convenience, this process CAN automatically drop, recreate, and seed database '${dbName}'`);
-        console.log('For safety, this process WILL NOT take these steps unless you set environment variable: OK_TO_DROP_DB=TRUE\n');
+    if (!url) {
+        console.log('You must set POSTGRES_TEST_URL as an environment variable');
         process.exit(0);
     }
+    const dbName = url.substring(url.lastIndexOf('/') + 1);
+    url = url.substring(0, url.lastIndexOf('/'));
 
     const options = {
         env: process.env,
