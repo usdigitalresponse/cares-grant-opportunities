@@ -58,7 +58,7 @@ describe('`/api/users` endpoint', async () => {
                 });
                 expect(response.statusText).to.equal('OK');
             });
-            it('is forbidden for an agency outside this user\'s hierarchy', async () => {
+            it('is forbidden for an agency outside this user\'s hierarchyaa', async () => {
                 const response = await fetch(`${endpoint}`, {
                     ...fetchOptions.admin,
                     method: 'post',
@@ -145,7 +145,7 @@ describe('`/api/users` endpoint', async () => {
                 });
                 expect(response.statusText).to.equal('OK');
             });
-            it('is forbidden for a user in an agency outside this user\'s hierarchy', async () => {
+            it('is forbidden for a user in an agency outside this user\'s hierarchyaaaa', async () => {
                 const response = await fetch(`${endpoint}/4`, {
                     ...fetchOptions.admin,
                     method: 'delete',

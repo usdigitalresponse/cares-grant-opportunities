@@ -370,13 +370,13 @@ describe('`/api/grants` endpoint', async () => {
                 });
                 expect(response.statusText).to.equal('OK');
             });
-            it('rejects requests with agency in query string', async () => {
+            it('ignores agency querystring if agency is passed in params', async () => {
                 const response = await fetch(`${interestEndpoint}/${agencies.ownSubAlternate}?agency=${agencies.own}`, {
                     ...fetchOptions.admin,
                     method: 'put',
                     body: JSON.stringify({ interestedCode: 1 }),
                 });
-                expect(response.statusText).to.equal('Bad Request');
+                expect(response.statusText).to.equal('OK');
             });
             it('forbids requests for any agency outside this user\'s hierarchy', async () => {
                 const response = await fetch(`${interestEndpoint}/${agencies.offLimits}`, {

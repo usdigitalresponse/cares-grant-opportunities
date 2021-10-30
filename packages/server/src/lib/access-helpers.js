@@ -34,15 +34,16 @@ async function requireAdminUser(req, res, next) {
     //  a route parameter :agency
     //  a route parameter :agencyId
     //  a body field named 'agency'
-    const headerAgency = Number(req.headers['agency-id']);
-    const queryAgency = Number(req.query.agency);
-    const paramAgency = Number(req.params.agency);
-    const paramAgencyId = Number(req.params.agencyId);
-    const bodyAgency = Number(req.body.agency);
+    const headerAgency = req.headers['agency-id'];
+    const queryAgency = req.query.agency;
+    const paramAgency = req.params.agency;
+    const paramAgencyId = req.params.agencyId;
+    // since the body is JSON, agency field will be a number, to keep everything the same type, convert it to a string
+    const bodyAgency = req.body.agency !== undefined && req.body.agency !== null ? req.body.agency.toString() : null;
 
-    const requestAgency = bodyAgency || paramAgency || paramAgencyId || queryAgency || headerAgency;
+    const requestAgency = Number(bodyAgency || paramAgency || paramAgencyId || queryAgency || headerAgency);
 
-    if (requestAgency !== null || requestAgency !== undefined) {
+    if (!Number.isNaN(requestAgency)) {
         const authorized = await isAuthorized(req.signedCookies.userId, requestAgency);
         if (!authorized) {
             res.sendStatus(403);

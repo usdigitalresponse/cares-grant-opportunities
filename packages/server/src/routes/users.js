@@ -37,11 +37,10 @@ router.get('/', requireAdminUser, async (req, res) => {
 });
 
 router.delete('/:userId', requireAdminUser, async (req, res) => {
-    // Get agency of user to be deleted.
-    const { agency_id } = req.session.user;
+    const userToDelete = await db.getUser(req.params.userId);
 
-    // Is this admin user authorized for that agency?
-    const authorized = await isAuthorized(req.signedCookies.userId, agency_id);
+    // Is this admin user able to delete a user in their agency
+    const authorized = await isAuthorized(req.signedCookies.userId, userToDelete.agency_id);
     if (!authorized) {
         res.sendStatus(403);
         return;
