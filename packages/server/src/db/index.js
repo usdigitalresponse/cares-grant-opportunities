@@ -122,11 +122,10 @@ async function getUser(id) {
     return user;
 }
 
-async function getAgencyCriteriaForUserId(userId) {
-    const user = await getUser(userId);
-    const eligibilityCodes = await getAgencyEligibilityCodes(user.agency.id);
+async function getAgencyCriteriaForAgency(agencyId) {
+    const eligibilityCodes = await getAgencyEligibilityCodes(agencyId);
     const enabledECodes = eligibilityCodes.filter((e) => e.enabled);
-    const keywords = await getAgencyKeywords(user.agency.id);
+    const keywords = await getAgencyKeywords(agencyId);
 
     return {
         eligibilityCodes: enabledECodes.map((c) => c.code),
@@ -554,7 +553,7 @@ module.exports = {
     createUser,
     deleteUser,
     getUser,
-    getAgencyCriteriaForUserId,
+    getAgencyCriteriaForAgency,
     isSubOrganization,
     getRoles,
     createAccessToken,

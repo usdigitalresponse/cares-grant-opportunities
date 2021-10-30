@@ -8,15 +8,14 @@ const { requireUser, isPartOfAgency } = require('../lib/access-helpers');
 router.get('/', requireUser, async (req, res) => {
     let agencyCriteria;
     // if we want interested, assigned, grants for a user, do not filter by eligibility or keywords
-    if (!req.query.interestedByMe || !req.query.assignedToAgency) {
-        agencyCriteria = await db.getAgencyCriteriaForUserId(req.signedCookies.userId);
+    if (!req.query.interestedByMe && !req.query.assignedToAgency) {
+        agencyCriteria = await db.getAgencyCriteriaForAgency(req.session.selectedAgency);
     }
     let agencies = [];
     if (req.query.agency) {
         agencies.push(req.query.agency);
     } else {
-        const user = await db.getUser(req.signedCookies.userId);
-        agencies = user.agency.subagencies.map((s) => s.id);
+        agencies = req.session.user.agency.subagencies.map((s) => s.id);
     }
     const grants = await db.getGrants({
         ...req.query,
@@ -32,7 +31,7 @@ router.get('/', requireUser, async (req, res) => {
 
 router.put('/:grantId/view/:agencyId', requireUser, async (req, res) => {
     const { agencyId, grantId } = req.params;
-    const user = await db.getUser(req.signedCookies.userId);
+    const { user } = req.session;
     if (!isPartOfAgency(user.agency.subagencies, agencyId)) {
         res.sendStatus(403);
         return;
@@ -47,7 +46,7 @@ router.get('/:grantId/assign/agencies', requireUser, async (req, res) => {
     if (req.query.agency) {
         agencies.push(req.query.agency);
     } else {
-        const user = await db.getUser(req.signedCookies.userId);
+        const { user } = req.session;
         agencies = user.agency.subagencies.map((s) => s.id);
     }
     const response = await db.getGrantAssignedAgencies({ grantId, agencies });
@@ -55,7 +54,7 @@ router.get('/:grantId/assign/agencies', requireUser, async (req, res) => {
 });
 
 router.put('/:grantId/assign/agencies', requireUser, async (req, res) => {
-    const user = await db.getUser(req.signedCookies.userId);
+    const { user } = req.session;
     const { grantId } = req.params;
     const { agencyIds } = req.body;
     if (!agencyIds.every((agencyId) => isPartOfAgency(user.agency.subagencies, agencyId))) {
@@ -68,7 +67,7 @@ router.put('/:grantId/assign/agencies', requireUser, async (req, res) => {
 });
 
 router.delete('/:grantId/assign/agencies', requireUser, async (req, res) => {
-    const user = await db.getUser(req.signedCookies.userId);
+    const { user } = req.session;
     const { grantId } = req.params;
     const { agencyIds } = req.body;
     if (!agencyIds.every((agencyId) => isPartOfAgency(user.agency.subagencies, agencyId))) {
@@ -86,7 +85,7 @@ router.get('/:grantId/interested', requireUser, async (req, res) => {
     if (req.query.agency) {
         agencies.push(req.query.agency);
     } else {
-        const user = await db.getUser(req.signedCookies.userId);
+        const { user } = req.session;
         agencies = user.agency.subagencies.map((s) => s.id);
     }
     const interestedAgencies = await db.getInterestedAgencies({ grantIds: [grantId], agencies });
@@ -94,7 +93,7 @@ router.get('/:grantId/interested', requireUser, async (req, res) => {
 });
 
 router.put('/:grantId/interested/:agencyId', requireUser, async (req, res) => {
-    const user = await db.getUser(req.signedCookies.userId);
+    const { user } = req.session;
     const { agencyId, grantId } = req.params;
     let interestedCode = null;
     if (req.body && req.body.interestedCode) {
@@ -142,7 +141,7 @@ router.get('/:grantId/form/:formName', requireUser, async (req, res) => {
     if (req.params.formName !== 'nevada_spoc') {
         return res.status(400);
     }
-    const user = await db.getUser(req.signedCookies.userId);
+    const { user } = req.session;
     const grant = await db.getGrant({ grantId: req.params.grantId });
     if (!grant) {
         return res.status(404);

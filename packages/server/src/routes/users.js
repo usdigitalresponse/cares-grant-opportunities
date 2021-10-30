@@ -16,7 +16,7 @@ router.post('/', requireAdminUser, async (req, res, next) => {
             email: req.body.email.toLowerCase(),
             name: req.body.name,
             role_id: req.body.role,
-            agency_id: req.session.agency,
+            agency_id: req.session.selectedAgency,
         };
         const result = await db.createUser(user);
         res.json({ user: result });
@@ -32,13 +32,13 @@ router.post('/', requireAdminUser, async (req, res, next) => {
 });
 
 router.get('/', requireAdminUser, async (req, res) => {
-    const users = await db.getUsers(req.session.agency);
+    const users = await db.getUsers(req.session.selectedAgency);
     res.json(users);
 });
 
 router.delete('/:userId', requireAdminUser, async (req, res) => {
     // Get agency of user to be deleted.
-    const { agency_id } = await db.getUser(req.params.userId);
+    const { agency_id } = req.session.user;
 
     // Is this admin user authorized for that agency?
     const authorized = await isAuthorized(req.signedCookies.userId, agency_id);

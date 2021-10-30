@@ -5,12 +5,12 @@ const db = require('../db');
 const { requireAdminUser, requireUser } = require('../lib/access-helpers');
 
 router.get('/', requireUser, async (req, res) => {
-    const elegibilityCodes = await db.getAgencyEligibilityCodes(req.session.agency);
+    const elegibilityCodes = await db.getAgencyEligibilityCodes(req.session.selectedAgency);
     res.json(elegibilityCodes);
 });
 
 router.put('/:code/enable/:value', requireAdminUser, async (req, res) => {
-    const result = await db.setAgencyEligibilityCodeEnabled(req.params.code, req.session.agency, req.params.value === 'true');
+    const result = await db.setAgencyEligibilityCodeEnabled(req.params.code, req.session.selectedAgency, req.params.value === 'true');
     res.json(result);
 });
 

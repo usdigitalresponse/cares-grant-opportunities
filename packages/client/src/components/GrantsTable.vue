@@ -69,7 +69,7 @@ export default {
   props: {
     showInterested: Boolean,
     showAging: Boolean,
-    showAssignedToAgency: Number,
+    showAssignedToAgency: String,
   },
   data() {
     return {

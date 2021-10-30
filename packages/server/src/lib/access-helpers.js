@@ -40,28 +40,17 @@ async function requireAdminUser(req, res, next) {
     const paramAgencyId = Number(req.params.agencyId);
     const bodyAgency = Number(req.body.agency);
 
-    let count = 0;
-    if (!Number.isNaN(headerAgency)) count += 1;
-    if (!Number.isNaN(queryAgency)) count += 1;
-    if (!Number.isNaN(paramAgency)) count += 1;
-    if (!Number.isNaN(paramAgencyId)) count += 1;
-    if (!Number.isNaN(bodyAgency)) count += 1;
+    const requestAgency = bodyAgency || paramAgency || paramAgencyId || queryAgency || headerAgency;
 
-    if (count > 1) {
-        res.sendStatus(400); // ambiguous request
-        return;
-    } if (count === 1) {
-        // Is this user an admin of the specified agency?
-        const requestAgency = headerAgency || queryAgency || paramAgency || paramAgencyId || bodyAgency || 0;
+    if (requestAgency !== null || requestAgency !== undefined) {
         const authorized = await isAuthorized(req.signedCookies.userId, requestAgency);
         if (!authorized) {
             res.sendStatus(403);
             return;
         }
-        req.session = { ...req.session, agency: requestAgency };
+        req.session = { ...req.session, user, selectedAgency: requestAgency };
     } else {
-        // no agency was specified; default to user's own agency
-        req.session = { ...req.session, agency: user.agency_id };
+        req.session = { ...req.session, user, selectedAgency: user.agency_id };
     }
 
     next();
@@ -78,13 +67,14 @@ async function requireUser(req, res, next) {
         res.sendStatus(403); // Staff are restricted to their own agency.
         return;
     }
-    req.session = { ...req.session, agency: user.agency_id };
 
     // User NOT required to be admin; but if they ARE, they must satisfy admin rules.
     if (user.role_name === 'admin') {
         await requireAdminUser(req, res, next);
         return;
     }
+
+    req.session = { ...req.session, user, selectedAgency: user.agency_id };
 
     next();
 }

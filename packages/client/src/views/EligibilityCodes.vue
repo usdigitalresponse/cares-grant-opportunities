@@ -6,7 +6,7 @@
         <b-form-checkbox
           :checked="data.item.enabled"
           :disabled="userRole === 'staff'"
-          @input="updateEnabled(data.item.code, $event)"/>
+          @change="updateEnabled(data.item.code, $event)"/>
     </template>
   </b-table>
 </section>
