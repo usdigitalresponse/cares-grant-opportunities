@@ -40,7 +40,7 @@ describe('`/api/agencies` endpoint', async () => {
         fetchOptions.staff.headers.cookie = await getSessionCookie('user2@nv.gov');
     });
 
-    context('GET /agencies (list an agency and its subagencies)', async () => {
+    context('GET /agencies?agency=N (list an agency and its subagencies)', async () => {
         context('by a user with admin role', async () => {
             it('lists this user\'s own agency and its subagencies', async () => {
                 // Will default to user's own agency ID
