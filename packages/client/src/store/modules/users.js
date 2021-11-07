@@ -44,7 +44,7 @@ export default {
       commit('SET_LOGGED_IN_USER', user);
     },
     async logout({ commit }) {
-      await fetchApi.get('/api/sessions/logout');
+      await fetchApi.get('/api/organizations/:organizationId/sessions/logout');
       commit('SET_LOGGED_IN_USER', null);
       localStorage.removeItem('selectedAgencyId');
     },
@@ -53,15 +53,15 @@ export default {
       localStorage.setItem('selectedAgencyId', agencyId);
     },
     fetchUsers({ commit }) {
-      return fetchApi.get('/api/users')
+      return fetchApi.get('/api/organizations/:organizationId/users')
         .then((data) => commit('SET_USERS', data));
     },
     async createUser({ dispatch }, user) {
-      await fetchApi.post('/api/users', user);
+      await fetchApi.post('/api/organizations/:organizationId/users', user);
       await dispatch('fetchUsers');
     },
     async deleteUser({ dispatch }, userId) {
-      await fetchApi.deleteRequest(`/api/users/${userId}`);
+      await fetchApi.deleteRequest(`/api/organizations/:organizationId/users/${userId}`);
       await dispatch('fetchUsers');
     },
   },

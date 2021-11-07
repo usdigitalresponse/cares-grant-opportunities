@@ -27,21 +27,9 @@ async function requireAdminUser(req, res, next) {
         res.sendStatus(403);
         return;
     }
+    const paramAgencyId = req.params.organizationId;
 
-    // Depending on the request, an agency ID may be specified in zero or one of:
-    //  a header: angecy-id
-    //  a query string: ?agency=...
-    //  a route parameter :agency
-    //  a route parameter :agencyId
-    //  a body field named 'agency'
-    const headerAgency = req.headers['agency-id'];
-    const queryAgency = req.query.agency;
-    const paramAgency = req.params.agency;
-    const paramAgencyId = req.params.agencyId;
-    // since the body is JSON, agency field will be a number, to keep everything the same type, convert it to a string
-    const bodyAgency = req.body.agency !== undefined && req.body.agency !== null ? req.body.agency.toString() : null;
-
-    const requestAgency = Number(bodyAgency || paramAgency || paramAgencyId || queryAgency || headerAgency);
+    const requestAgency = Number(paramAgencyId);
 
     if (!Number.isNaN(requestAgency)) {
         const authorized = await isAuthorized(req.signedCookies.userId, requestAgency);
@@ -64,7 +52,7 @@ async function requireUser(req, res, next) {
     }
 
     const user = await getUser(req.signedCookies.userId);
-    if (req.query.agency && user.role_name === 'staff') {
+    if (req.params.organizationId && user.role_name === 'staff' && (req.params.organizationId !== user.agency_id.toString())) {
         res.sendStatus(403); // Staff are restricted to their own agency.
         return;
     }

@@ -1,6 +1,6 @@
 const express = require('express');
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 const { requireAdminUser, isAuthorized } = require('../lib/access-helpers');
 const { sendWelcomeEmail } = require('../lib/email');
 const db = require('../db');

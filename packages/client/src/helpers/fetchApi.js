@@ -2,9 +2,12 @@ import store from '@/store';
 
 function getDefaultHeaders() {
   const headers = new Headers();
-  headers.append('agency-id', store.getters['users/selectedAgencyId']);
   headers.append('Content-Type', 'application/json');
   return headers;
+}
+
+function addOrganizationId(url) {
+  return `${process.env.VUE_APP_GRANTS_API_URL}${url.replace(':organizationId', store.getters['users/selectedAgencyId'])}`;
 }
 
 export function get(url) {
@@ -12,7 +15,7 @@ export function get(url) {
     credentials: 'include',
     headers: getDefaultHeaders(),
   };
-  return fetch(`${process.env.VUE_APP_GRANTS_API_URL}${url}`, options).then((r) => {
+  return fetch(addOrganizationId(url), options).then((r) => {
     if (r.ok) {
       return r.json();
     }
@@ -29,7 +32,7 @@ export function deleteRequest(url, body) {
     headers: getDefaultHeaders(),
     body: JSON.stringify(body),
   };
-  return fetch(`${process.env.VUE_APP_GRANTS_API_URL}${url}`, options).then((r) => {
+  return fetch(addOrganizationId(url), options).then((r) => {
     if (r.ok) {
       return r.json();
     }
@@ -46,7 +49,7 @@ export function post(url, body) {
     headers: getDefaultHeaders(),
     body: JSON.stringify(body),
   };
-  return fetch(`${process.env.VUE_APP_GRANTS_API_URL}${url}`, options).then((r) => {
+  return fetch(addOrganizationId(url), options).then((r) => {
     if (r.ok) {
       return r.json();
     }
@@ -63,7 +66,7 @@ export function put(url, body) {
     headers: getDefaultHeaders(),
     body: JSON.stringify(body),
   };
-  return fetch(`${process.env.VUE_APP_GRANTS_API_URL}${url}`, options).then((r) => {
+  return fetch(addOrganizationId(url), options).then((r) => {
     if (r.ok) {
       return r.json();
     }

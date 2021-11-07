@@ -1,6 +1,6 @@
 const express = require('express');
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 const { requireAdminUser, requireUser, isAuthorized } = require('../lib/access-helpers');
 const db = require('../db');
 
