@@ -30,6 +30,15 @@ async function getSessionCookie(email) {
     return response.headers.raw()['set-cookie'];
 }
 
+function getEndpoint({ agencyId, url }) {
+    return `${process.env.API_DOMAIN}/api/organizations/${agencyId}${url}`;
+}
+
+function fetchApi(url, agencyId, fetchOptions) {
+    return fetch(getEndpoint({ agencyId, url }), fetchOptions);
+}
+
 module.exports = {
     getSessionCookie,
+    fetchApi,
 };

@@ -1,17 +1,9 @@
 const { expect } = require('chai');
-const fetch = require('node-fetch');
-const { getSessionCookie } = require('./utils');
 require('dotenv').config();
 
+const { getSessionCookie, fetchApi } = require('./utils');
+
 describe('`/api/organizations/:organizationId/agencies` endpoint', async () => {
-    function getEndpoint({ agencyId, url }) {
-        return `${process.env.API_DOMAIN}/api/organizations/${agencyId}${url}`;
-    }
-
-    function fetchApi(url, agencyId, fetchOptions) {
-        return fetch(getEndpoint({ agencyId, url }), fetchOptions);
-    }
-
     const agencies = {
         admin: {
             own: 0,
