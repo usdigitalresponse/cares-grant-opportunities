@@ -5,18 +5,24 @@ const db = require('../db');
 const pdf = require('../lib/pdf');
 const { requireUser, isPartOfAgency } = require('../lib/access-helpers');
 
+async function getAgencyForUser(selectedAgency, user) {
+    let agencies = [];
+    if (selectedAgency === user.agency_id) {
+        agencies = user.agency.subagencies;
+    } else {
+        agencies = await db.getAgencies(selectedAgency);
+    }
+    return agencies.map((s) => s.id);
+}
+
 router.get('/', requireUser, async (req, res) => {
     let agencyCriteria;
     // if we want interested, assigned, grants for a user, do not filter by eligibility or keywords
     if (!req.query.interestedByMe && !req.query.assignedToAgency) {
         agencyCriteria = await db.getAgencyCriteriaForAgency(req.session.selectedAgency);
     }
-    let agencies = [];
-    if (req.query.agency) {
-        agencies.push(req.query.agency);
-    } else {
-        agencies = req.session.user.agency.subagencies.map((s) => s.id);
-    }
+    const { selectedAgency, user } = req.session;
+    const agencies = await getAgencyForUser(selectedAgency, user);
     const grants = await db.getGrants({
         ...req.query,
         agencies,
@@ -42,13 +48,8 @@ router.put('/:grantId/view/:agencyId', requireUser, async (req, res) => {
 
 router.get('/:grantId/assign/agencies', requireUser, async (req, res) => {
     const { grantId } = req.params;
-    let agencies = [];
-    if (req.query.agency) {
-        agencies.push(req.query.agency);
-    } else {
-        const { user } = req.session;
-        agencies = user.agency.subagencies.map((s) => s.id);
-    }
+    const { selectedAgency, user } = req.session;
+    const agencies = await getAgencyForUser(selectedAgency, user);
     const response = await db.getGrantAssignedAgencies({ grantId, agencies });
     res.json(response);
 });
@@ -81,13 +82,8 @@ router.delete('/:grantId/assign/agencies', requireUser, async (req, res) => {
 
 router.get('/:grantId/interested', requireUser, async (req, res) => {
     const { grantId } = req.params;
-    let agencies = [];
-    if (req.query.agency) {
-        agencies.push(req.query.agency);
-    } else {
-        const { user } = req.session;
-        agencies = user.agency.subagencies.map((s) => s.id);
-    }
+    const { selectedAgency, user } = req.session;
+    const agencies = await getAgencyForUser(selectedAgency, user);
     const interestedAgencies = await db.getInterestedAgencies({ grantIds: [grantId], agencies });
     res.json(interestedAgencies);
 });
