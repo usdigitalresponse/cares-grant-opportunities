@@ -140,11 +140,6 @@ export default {
     },
   },
   watch: {
-    agency() {
-      // this.formData.warningThreshold = this.agency && this.agency.warning_threshold;
-      // this.formData.dangerThreshold = this.agency && this.agency.danger_threshold;
-      // this.showDialog = Boolean(this.agency !== null);
-    },
   },
   computed: {
     ...mapGetters({
@@ -174,7 +169,6 @@ export default {
       if (this.$v.formData.$invalid) {
         return;
       }
-      console.log(this.formData);
       const body = {
         ...this.formData,
         parentId: this.formData.parentAgency.id,

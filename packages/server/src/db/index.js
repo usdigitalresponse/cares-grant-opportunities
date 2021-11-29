@@ -218,11 +218,14 @@ function getElegibilityCodes() {
 
 function setAgencyEligibilityCodeEnabled(code, agencyId, enabled) {
     return knex(TABLES.agency_eligibility_codes)
-        .where({
+        .insert({
             agency_id: agencyId,
             code,
+            enabled,
+            updated_at: new Date(),
         })
-        .update({ enabled });
+        .onConflict(['agency_id', 'code'])
+        .merge();
 }
 
 async function getKeyword(keywordId) {
@@ -455,14 +458,26 @@ async function getAgencies(rootAgency) {
     return result.rows;
 }
 
-function getAgencyEligibilityCodes(agencyId) {
-    return knex(TABLES.agencies)
-        .join(TABLES.agency_eligibility_codes, `${TABLES.agencies}.id`, '=', `${TABLES.agency_eligibility_codes}.agency_id`)
-        .join(TABLES.eligibility_codes, `${TABLES.eligibility_codes}.code`, '=', `${TABLES.agency_eligibility_codes}.code`)
-        .select('eligibility_codes.code', 'eligibility_codes.label', 'agency_eligibility_codes.enabled',
-            'agency_eligibility_codes.created_at', 'agency_eligibility_codes.updated_at')
-        .where('agencies.id', agencyId)
+async function getAgencyEligibilityCodes(agencyId) {
+    const eligibilityCodes = await knex(TABLES.eligibility_codes).orderBy('code');
+    const agencyEligibilityCodes = await knex(TABLES.agency_eligibility_codes)
+        .where('agency_eligibility_codes.agency_id', agencyId)
         .orderBy('code');
+    return eligibilityCodes.map((ec) => {
+        const agencyEcEnabled = agencyEligibilityCodes.find((aEc) => ec.code === aEc.code);
+        if (!agencyEcEnabled) {
+            return {
+                ...ec,
+                created_at: null,
+                updated_at: null,
+                enabled: false,
+            };
+        }
+        return {
+            ...ec,
+            ...agencyEcEnabled,
+        };
+    });
 }
 
 function getAgencyKeywords(agencyId) {
