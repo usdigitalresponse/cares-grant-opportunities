@@ -471,6 +471,22 @@ function getAgencyKeywords(agencyId) {
         .where('agency_id', agencyId);
 }
 
+async function createAgency({
+    name, abbreviation, parent, warning_threshold, danger_threshold,
+}) {
+    // seeded agencies with hardcoded ids will make autoicrement fail since it doesnt
+    // know which is the next id
+    await knex.raw('select setval(\'agencies_id_seq\', max(id)) from agencies');
+    return knex(TABLES.agencies)
+        .insert({
+            parent,
+            name,
+            abbreviation,
+            warning_threshold,
+            danger_threshold,
+        });
+}
+
 function setAgencyThresholds(id, warning_threshold, danger_threshold) {
     return knex(TABLES.agencies)
         .where({
@@ -582,6 +598,7 @@ module.exports = {
     markGrantAsInterested,
     getGrantAssignedAgencies,
     assignGrantsToAgencies,
+    createAgency,
     unassignAgenciesToGrant,
     getElegibilityCodes,
     sync,
