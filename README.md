@@ -209,7 +209,7 @@ This repository falls under [U.S. Digital Response’s Code of Conduct](./CODE_O
 
 This project wouldn’t exist without the hard work of many people. Thanks to the following for all their contributions! Please see [`CONTRIBUTING.md`](./CONTRIBUTING.md) to find out how you can help.
 
-**Lead Maintainer:** [Rafael Pol (@rapol](https://github.com/Rapol)
+**Lead Maintainer:** [Rafael Pol (@Rapol)](https://github.com/Rapol)
 
 
 ## License & Copyright
