@@ -5,10 +5,16 @@ const db = require('../db');
 const pdf = require('../lib/pdf');
 const { requireUser, isPartOfAgency } = require('../lib/access-helpers');
 
-async function getAgencyForUser(selectedAgency, user) {
+async function getAgencyForUser(selectedAgency, user, { filterByMainAgency } = {}) {
     let agencies = [];
     if (selectedAgency === user.agency_id) {
         agencies = user.agency.subagencies;
+    } if (filterByMainAgency && user.agency.main_agency_id >= 0) {
+        // user.agency.main_agency_id check in if added for backward compatiblity. After migrating partners all
+        // we can remove it since
+        // Get all agencies from the main agency. Usually the agency of the organization,
+        // in other words the root parent agency (for example nevada agency)
+        agencies = await db.getAgencies(user.agency.main_agency_id);
     } else {
         agencies = await db.getAgencies(selectedAgency);
     }
@@ -22,7 +28,7 @@ router.get('/', requireUser, async (req, res) => {
         agencyCriteria = await db.getAgencyCriteriaForAgency(req.session.selectedAgency);
     }
     const { selectedAgency, user } = req.session;
-    const agencies = await getAgencyForUser(selectedAgency, user);
+    const agencies = await getAgencyForUser(selectedAgency, user, { filterByMainAgency: true });
     const grants = await db.getGrants({
         ...req.query,
         agencies,
@@ -49,7 +55,7 @@ router.put('/:grantId/view/:agencyId', requireUser, async (req, res) => {
 router.get('/:grantId/assign/agencies', requireUser, async (req, res) => {
     const { grantId } = req.params;
     const { selectedAgency, user } = req.session;
-    const agencies = await getAgencyForUser(selectedAgency, user);
+    const agencies = await getAgencyForUser(selectedAgency, user, { filterByMainAgency: true });
     const response = await db.getGrantAssignedAgencies({ grantId, agencies });
     res.json(response);
 });
@@ -83,7 +89,7 @@ router.delete('/:grantId/assign/agencies', requireUser, async (req, res) => {
 router.get('/:grantId/interested', requireUser, async (req, res) => {
     const { grantId } = req.params;
     const { selectedAgency, user } = req.session;
-    const agencies = await getAgencyForUser(selectedAgency, user);
+    const agencies = await getAgencyForUser(selectedAgency, user, { filterByMainAgency: true });
     const interestedAgencies = await db.getInterestedAgencies({ grantIds: [grantId], agencies });
     res.json(interestedAgencies);
 });
