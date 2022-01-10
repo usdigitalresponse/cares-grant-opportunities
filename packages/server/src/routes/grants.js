@@ -5,13 +5,21 @@ const db = require('../db');
 const pdf = require('../lib/pdf');
 const { requireUser, isPartOfAgency } = require('../lib/access-helpers');
 
+/**
+ * Based on arguments passed, return the list of agencies appropiate for this request. This
+ * list agency will be used by the query to perform filtering based on user agency access.
+ * @param {Number} selectedAgency agency id
+ * @param {Object} user User record
+ * @param {Object} opts
+ * @param {Boolean} opts.filterByMainAgency - If true, it will return a list of ids
+ * for all agencies from the main agency.
+ * @returns {String[]} array of agency ids
+ */
 async function getAgencyForUser(selectedAgency, user, { filterByMainAgency } = {}) {
     let agencies = [];
     if (selectedAgency === user.agency_id) {
         agencies = user.agency.subagencies;
     } if (filterByMainAgency && user.agency.main_agency_id >= 0) {
-        // user.agency.main_agency_id check in if added for backward compatiblity. After migrating partners all
-        // we can remove it since
         // Get all agencies from the main agency. Usually the agency of the organization,
         // in other words the root parent agency (for example nevada agency)
         agencies = await db.getAgencies(user.agency.main_agency_id);

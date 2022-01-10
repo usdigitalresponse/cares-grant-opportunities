@@ -155,7 +155,7 @@ describe('`/api/grants` endpoint', async () => {
             });
         });
         context('by a user with admin role in another organization', async () => {
-            it('includes this user\'s own agency when it is assigned to the grant', async () => {
+            it('forbids requests for any agency outside of the main agency hierarchy', async () => {
                 const badResponse = await fetchApi(`/grants/${assignedEndpoint}`, agencies.own, fetchOptions.dallasAdmin);
                 expect(badResponse.statusText).to.equal('Forbidden');
             });
