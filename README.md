@@ -2,6 +2,21 @@
 
 # CARES Grant Opportunities
 
+# Project structure
+
+```
+├── packages                                    # Yarn workspace
+│   ├── client                                  # Vue App
+│   └── server                                  # Node server
+│       ├── migrations                          # db migrations
+│       └── seeds                               # db seeds
+│       └── knexfile                            # knex configuration
+```
+
+Each folder inside packages/ is considered a workspace. To see a list of all worskpaces, run the following
+
+`yarn workspaces info`
+
 # Setup
 
 To setup your workspace run the following commands at the root of the project
@@ -13,18 +28,33 @@ yarn run setup
 
 The scripts will install yarn and download npm dependencies for all yarn workspaces.
 
-# Project structure
+Install postgres DB. I personally used https://postgresapp.com/
+
+Create database called cares_grant.
 
 ```
-├── migrations                                  # DB migations
-├── src                                         # Yarn workspace
-│   ├── client                                  # Vue App
-│   └── server                                  # Node servr
+psql -h localhost -p 5432
+> CREATE DATABASE cares_grant;
 ```
 
-Each folder inside src/ considered a workspace. To see a list of all worskpaces, run the following
+Create .env file in server workspace based on the .env.example. See Deployment section for more information on the .env file.
 
-`yarn workspaces info`
+Set environment variable pointing to local postgrest DB, this is used for migrations
+
+`export POSTGRES_URL="postgresql://localhost:5432/cares_grant"`
+
+In server workspace, run migrations
+
+`npx knex migrate:latest`
+
+In server/seeds/dev/index.js, update the adminList by adding a user with your email to be able to login to the system. Then run migrations
+
+`npx knex seed:run`
+
+After that you should be able to serve the backend and frontend by running in both server and client folders.
+
+
+`yarn run serve`
 
 ## Yarn Workspaces
 
@@ -134,6 +164,7 @@ API_DOMAIN=<WEB_SERVICE_URL> # Render web service url ie. https://cares-grant-op
 VUE_APP_GRANTS_API_URL=<WEB_SERVICE_URL> # ie. https://cares-grant-opportunities-qi8i.onrender.com
 
 STATE_NAME=Nevada
+NODE_ENV=development or production or test
 
 NOTIFICATIONS_EMAIL="grants-identification@usdigitalresponse.org"
 SES_REGION="us-east-1"

@@ -24,16 +24,37 @@ export default {
   },
   actions: {
     fetchGrants({ commit }, {
-      currentPage, perPage, orderBy, searchTerm,
+      currentPage, perPage, orderBy, searchTerm, interestedByMe, assignedToAgency, aging,
     }) {
-      return fetchApi.get(`/api/grants?currentPage=${currentPage}&perPage=${perPage}&orderBy=${orderBy}&searchTerm=${searchTerm}`)
+      const query = Object.entries({
+        currentPage, perPage, orderBy, searchTerm, interestedByMe, assignedToAgency, aging,
+      })
+        // filter out undefined and nulls since api expects parameters not present as undefined
+        // eslint-disable-next-line no-unused-vars
+        .filter(([key, value]) => value || typeof value === 'number')
+        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+        .join('&');
+      return fetchApi.get(`/api/organizations/:organizationId/grants?${query}`)
         .then((data) => commit('SET_GRANTS', data));
     },
     markGrantAsViewed(context, { grantId, agencyId }) {
-      return fetchApi.put(`/api/grants/${grantId}/view/${agencyId}`);
+      return fetchApi.put(`/api/organizations/:organizationId/grants/${grantId}/view/${agencyId}`);
+    },
+    getGrantAssignedAgencies(context, { grantId }) {
+      return fetchApi.get(`/api/organizations/:organizationId/grants/${grantId}/assign/agencies`);
+    },
+    assignAgenciesToGrant(context, { grantId, agencyIds }) {
+      return fetchApi.put(`/api/organizations/:organizationId/grants/${grantId}/assign/agencies`, {
+        agencyIds,
+      });
+    },
+    unassignAgenciesToGrant(context, { grantId, agencyIds }) {
+      return fetchApi.deleteRequest(`/api/organizations/:organizationId/grants/${grantId}/assign/agencies`, {
+        agencyIds,
+      });
     },
     async generateGrantForm(context, { grantId }) {
-      const response = await fetchApi.get(`/api/grants/${grantId}/form/nevada_spoc`);
+      const response = await fetchApi.get(`/api/organizations/:organizationId/grants/${grantId}/form/nevada_spoc`);
       const link = document.createElement('a');
       link.href = response.filePath;
       link.setAttribute('download', response.filePath);
@@ -42,40 +63,47 @@ export default {
       link.click();
     },
     fetchInterestedAgencies(context, { grantId }) {
-      return fetchApi.get(`/api/grants/${grantId}/interested`);
+      return fetchApi.get(`/api/organizations/:organizationId/grants/${grantId}/interested`);
     },
-    markGrantAsInterested(context, { grantId, agencyId, interestedCode }) {
-      return fetchApi.put(`/api/grants/${grantId}/interested/${agencyId}`, {
+    async markGrantAsInterested({ commit }, { grantId, agencyId, interestedCode }) {
+      const interestedAgencies = await fetchApi.put(`/api/organizations/:organizationId/grants/${grantId}/interested/${agencyId}`, {
         interestedCode,
       });
+      commit('UPDATE_GRANT', { grantId, data: { interested_agencies: interestedAgencies } });
     },
     fetchEligibilityCodes({ commit }) {
-      fetchApi.get('/api/eligibility-codes')
+      fetchApi.get('/api/organizations/:organizationId/eligibility-codes')
         .then((data) => commit('SET_ELIGIBILITY_CODES', data));
     },
     fetchInterestedCodes({ commit }) {
-      fetchApi.get('/api/interested-codes')
+      fetchApi.get('/api/organizations/:organizationId/interested-codes')
         .then((data) => commit('SET_INTERESTED_CODES', data));
     },
     async setEligibilityCodeEnabled(context, { code, enabled }) {
-      await fetchApi.put(`/api/eligibility-codes/${code}/enable/${enabled}`);
+      await fetchApi.put(`/api/organizations/:organizationId/eligibility-codes/${code}/enable/${enabled}`);
     },
     fetchKeywords({ commit }) {
-      fetchApi.get('/api/keywords')
+      fetchApi.get('/api/organizations/:organizationId/keywords')
         .then((data) => commit('SET_KEYWORDS', data));
     },
     async createKeyword({ dispatch }, keyword) {
-      await fetchApi.post('/api/keywords', keyword);
+      await fetchApi.post('/api/organizations/:organizationId/keywords', keyword);
       dispatch('fetchKeywords');
     },
     async deleteKeyword({ dispatch }, keywordId) {
-      await fetchApi.deleteRequest(`/api/keywords/${keywordId}`);
+      await fetchApi.deleteRequest(`/api/organizations/:organizationId/keywords/${keywordId}`);
       dispatch('fetchKeywords');
     },
   },
   mutations: {
     SET_GRANTS(state, grants) {
       state.grantsPaginated = grants;
+    },
+    UPDATE_GRANT(state, { grantId, data }) {
+      const grant = state.grantsPaginated.data.find((g) => g.grant_id === grantId);
+      if (grant) {
+        Object.assign(grant, data);
+      }
     },
     SET_ELIGIBILITY_CODES(state, eligibilityCodes) {
       state.eligibilityCodes = eligibilityCodes;

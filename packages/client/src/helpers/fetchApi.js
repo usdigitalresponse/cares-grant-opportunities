@@ -1,8 +1,21 @@
+import store from '@/store';
+
+function getDefaultHeaders() {
+  const headers = new Headers();
+  headers.append('Content-Type', 'application/json');
+  return headers;
+}
+
+function addOrganizationId(url) {
+  return `${process.env.VUE_APP_GRANTS_API_URL}${url.replace(':organizationId', store.getters['users/selectedAgencyId'])}`;
+}
+
 export function get(url) {
   const options = {
     credentials: 'include',
+    headers: getDefaultHeaders(),
   };
-  return fetch(`${process.env.VUE_APP_GRANTS_API_URL}${url}`, options).then((r) => {
+  return fetch(addOrganizationId(url), options).then((r) => {
     if (r.ok) {
       return r.json();
     }
@@ -12,12 +25,14 @@ export function get(url) {
   });
 }
 
-export function deleteRequest(url) {
+export function deleteRequest(url, body) {
   const options = {
     method: 'DELETE',
     credentials: 'include',
+    headers: getDefaultHeaders(),
+    body: JSON.stringify(body),
   };
-  return fetch(`${process.env.VUE_APP_GRANTS_API_URL}${url}`, options).then((r) => {
+  return fetch(addOrganizationId(url), options).then((r) => {
     if (r.ok) {
       return r.json();
     }
@@ -31,12 +46,10 @@ export function post(url, body) {
   const options = {
     method: 'POST',
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getDefaultHeaders(),
     body: JSON.stringify(body),
   };
-  return fetch(`${process.env.VUE_APP_GRANTS_API_URL}${url}`, options).then((r) => {
+  return fetch(addOrganizationId(url), options).then((r) => {
     if (r.ok) {
       return r.json();
     }
@@ -50,12 +63,10 @@ export function put(url, body) {
   const options = {
     method: 'PUT',
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getDefaultHeaders(),
     body: JSON.stringify(body),
   };
-  return fetch(`${process.env.VUE_APP_GRANTS_API_URL}${url}`, options).then((r) => {
+  return fetch(addOrganizationId(url), options).then((r) => {
     if (r.ok) {
       return r.json();
     }

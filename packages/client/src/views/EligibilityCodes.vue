@@ -6,7 +6,7 @@
         <b-form-checkbox
           :checked="data.item.enabled"
           :disabled="userRole === 'staff'"
-          @input="updateEnabled(data.item.code, $event)"/>
+          @change="updateEnabled(data.item.code, $event)"/>
     </template>
   </b-table>
 </section>
@@ -35,28 +35,34 @@ export default {
           key: 'enabled',
         },
         {
-          key: 'created_at',
-        },
-        {
           key: 'updated_at',
         },
       ],
     };
   },
   mounted() {
-    this.fetchEligibilityCodes();
+    this.setup();
   },
   computed: {
     ...mapGetters({
       eligibilityCodes: 'grants/eligibilityCodes',
       userRole: 'users/userRole',
+      selectedAgency: 'users/selectedAgency',
     }),
+  },
+  watch: {
+    selectedAgency() {
+      this.setup();
+    },
   },
   methods: {
     ...mapActions({
       fetchEligibilityCodes: 'grants/fetchEligibilityCodes',
       setEligibilityCodeEnabled: 'grants/setEligibilityCodeEnabled',
     }),
+    setup() {
+      this.fetchEligibilityCodes();
+    },
     updateEnabled(code, enabled) {
       this.setEligibilityCodeEnabled({ code, enabled });
     },
