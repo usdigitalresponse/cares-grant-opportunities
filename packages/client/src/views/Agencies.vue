@@ -3,6 +3,11 @@
   <b-row>
     <b-col><h2>Agencies</h2></b-col>
     <b-col></b-col>
+    <b-col class="d-flex justify-content-end">
+      <div>
+        <b-button variant="success" @click="openAddAgencyModal">Add</b-button>
+      </div>
+    </b-col>
   </b-row>
   <b-table sticky-header="600px" hover :items="formattedAgencies" :fields="fields">
       <template #cell(warning_threshold)="row">
@@ -20,6 +25,8 @@
   <EditAgencyModal
      :agency.sync="editingAgency"
   />
+  <AddAgencyModal
+  :showDialog.sync="showAddAgencyModal"/>
 </section>
 </template>
 
@@ -28,10 +35,12 @@
 import { mapActions, mapGetters } from 'vuex';
 
 import EditAgencyModal from '@/components/Modals/EditAgency.vue';
+import AddAgencyModal from '@/components/Modals/AddAgency.vue';
 
 export default {
   components: {
     EditAgencyModal,
+    AddAgencyModal,
   },
   data() {
     return {
@@ -56,17 +65,19 @@ export default {
         },
         { key: 'actions', label: 'Actions' },
       ],
+      showAddAgencyModal: false,
       showEditAgencyModal: false,
       editingAgency: null,
     };
   },
   mounted() {
-    this.fetchAgencies();
+    this.setup();
   },
   computed: {
     ...mapGetters({
       agencies: 'agencies/agencies',
       userRole: 'users/userRole',
+      selectedAgency: 'users/selectedAgency',
     }),
     formattedAgencies() {
       return this.agencies.map((agency) => ({
@@ -74,13 +85,24 @@ export default {
       }));
     },
   },
+  watch: {
+    selectedAgency() {
+      this.setup();
+    },
+  },
   methods: {
     ...mapActions({
       fetchAgencies: 'agencies/fetchAgencies',
     }),
+    setup() {
+      this.fetchAgencies();
+    },
     openEditAgencyModal(agency) {
       this.editingAgency = agency;
       this.showEditAgencyModal = true;
+    },
+    openAddAgencyModal() {
+      this.showAddAgencyModal = true;
     },
   },
 };

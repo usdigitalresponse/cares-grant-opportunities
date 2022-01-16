@@ -1,18 +1,16 @@
 const express = require('express');
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 const db = require('../db');
-const { requireAdminUser } = require('../lib/access-helpers');
+const { requireAdminUser, requireUser } = require('../lib/access-helpers');
 
-router.get('/', async (req, res) => {
-    const user = await db.getUser(req.signedCookies.userId);
-    const elegibilityCodes = await db.getAgencyEligibilityCodes(user.agency.id);
+router.get('/', requireUser, async (req, res) => {
+    const elegibilityCodes = await db.getAgencyEligibilityCodes(req.session.selectedAgency);
     res.json(elegibilityCodes);
 });
 
 router.put('/:code/enable/:value', requireAdminUser, async (req, res) => {
-    const user = await db.getUser(req.signedCookies.userId);
-    const result = await db.setAgencyEligibilityCodeEnabled(req.params.code, user.agency.id, req.params.value === 'true');
+    const result = await db.setAgencyEligibilityCodeEnabled(req.params.code, req.session.selectedAgency, req.params.value === 'true');
     res.json(result);
 });
 

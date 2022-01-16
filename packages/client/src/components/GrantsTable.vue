@@ -4,22 +4,29 @@
       <b-col cols="5">
         <b-input-group size="md">
           <b-input-group-text>
-              <b-icon icon="search" />
+            <b-icon icon="search" />
           </b-input-group-text>
-          <b-form-input type="search" @input="debounceSearchInput"></b-form-input>
+          <b-form-input
+            type="search"
+            @input="debounceSearchInput"
+          ></b-form-input>
         </b-input-group>
       </b-col>
     </b-row>
     <b-table
       id="grants-table"
-      sticky-header="600px" hover :items="formattedGrants" :fields="fields"
+      sticky-header="600px"
+      hover
+      :items="formattedGrants"
+      :fields="fields"
       selectable
       striped
       select-mode="single"
       :busy="loading"
       no-local-sorting
       @row-selected="onRowSelected"
-      @sort-changed="sortingChanged">
+      @sort-changed="sortingChanged"
+    >
       <template #table-busy>
         <div class="text-center text-danger my-2">
           <b-spinner class="align-middle"></b-spinner>
@@ -28,7 +35,8 @@
       </template>
     </b-table>
     <b-row align-v="center">
-      <b-pagination class="m-0"
+      <b-pagination
+        class="m-0"
         v-model="currentPage"
         :total-rows="totalRows"
         :per-page="perPage"
@@ -38,12 +46,13 @@
         prev-text="Prev"
         next-text="Next"
         last-text="Last"
-        aria-controls="grants-table"/>
-        <b-button class="ml-2" variant="outline-primary disabled">{{grants.length}} of {{totalRows}}</b-button>
+        aria-controls="grants-table"
+      />
+      <b-button class="ml-2" variant="outline-primary disabled"
+        >{{ grants.length }} of {{ totalRows }}</b-button
+      >
     </b-row>
-    <GrantDetails
-     :selected-grant.sync="selectedGrant"
-    />
+    <GrantDetails :selected-grant.sync="selectedGrant" />
   </section>
 </template>
 
@@ -59,7 +68,8 @@ export default {
   components: { GrantDetails },
   props: {
     showInterested: Boolean,
-    showAssignedToAgency: Number,
+    showAging: Boolean,
+    showAssignedToAgency: String,
   },
   data() {
     return {
@@ -124,13 +134,14 @@ export default {
   },
   mounted() {
     document.addEventListener('keyup', this.changeSelectedGrantIndex);
-    this.paginateGrants();
+    this.setup();
   },
   computed: {
     ...mapGetters({
       grants: 'grants/grants',
       grantsPagination: 'grants/grantsPagination',
       agency: 'users/agency',
+      selectedAgency: 'users/selectedAgency',
     }),
     totalRows() {
       return this.grantsPagination ? this.grantsPagination.total : 0;
@@ -146,8 +157,12 @@ export default {
 
       return this.grants.map((grant) => ({
         ...grant,
-        interested_agencies: grant.interested_agencies.map((v) => v.agency_abbreviation).join(', '),
-        viewed_by: grant.viewed_by_agencies.map((v) => v.agency_abbreviation).join(', '),
+        interested_agencies: grant.interested_agencies
+          .map((v) => v.agency_abbreviation)
+          .join(', '),
+        viewed_by: grant.viewed_by_agencies
+          .map((v) => v.agency_abbreviation)
+          .join(', '),
         status: grant.opportunity_status,
         open_date: new Date(grant.open_date).toLocaleDateString('en-US'),
         close_date: new Date(grant.close_date).toLocaleDateString('en-US'),
@@ -167,6 +182,9 @@ export default {
     },
   },
   watch: {
+    selectedAgency() {
+      this.setup();
+    },
     currentPage() {
       this.paginateGrants();
     },
@@ -193,6 +211,9 @@ export default {
     ...mapActions({
       fetchGrants: 'grants/fetchGrants',
     }),
+    setup() {
+      this.paginateGrants();
+    },
     titleize,
     debounceSearchInput: debounce(function bounce(newVal) {
       this.debouncedSearchInput = newVal;
@@ -206,6 +227,7 @@ export default {
           orderBy: this.orderBy,
           searchTerm: this.debouncedSearchInput,
           interestedByMe: this.showInterested,
+          aging: this.showAging,
           assignedToAgency: this.showAssignedToAgency,
         });
       } catch (e) {
@@ -227,7 +249,9 @@ export default {
       if (row) {
         const grant = this.grants.find((g) => row.grant_id === g.grant_id);
         this.selectedGrant = grant;
-        this.selectedGrantIndex = this.grants.findIndex((g) => row.grant_id === g.grant_id);
+        this.selectedGrantIndex = this.grants.findIndex(
+          (g) => row.grant_id === g.grant_id,
+        );
       }
     },
     changeSelectedGrant() {
@@ -266,9 +290,13 @@ export default {
     },
     async grantUpdated() {
       await this.paginateGrants();
-      const grant = this.grants.find((g) => this.selectedGrant.grant_id === g.grant_id);
+      const grant = this.grants.find(
+        (g) => this.selectedGrant.grant_id === g.grant_id,
+      );
       this.selectedGrant = grant;
-      this.selectedGrantIndex = this.grants.findIndex((g) => this.selectedGrant.grant_id === g.grant_id);
+      this.selectedGrantIndex = this.grants.findIndex(
+        (g) => this.selectedGrant.grant_id === g.grant_id,
+      );
     },
   },
 };

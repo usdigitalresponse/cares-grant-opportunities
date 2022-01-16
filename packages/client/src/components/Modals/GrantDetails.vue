@@ -1,3 +1,4 @@
+<!-- eslint-disable max-len -->
 <template>
     <b-modal v-model="showDialog"
     ok-only
@@ -161,6 +162,7 @@ export default {
   computed: {
     ...mapGetters({
       agency: 'users/agency',
+      selectedAgencyId: 'users/selectedAgencyId',
       agencies: 'agencies/agencies',
       users: 'users/users',
       interestedCodes: 'grants/interestedCodes',
@@ -169,13 +171,13 @@ export default {
       if (!this.selectedGrant) {
         return false;
       }
-      return this.selectedGrant.viewed_by_agencies.find((viewed) => viewed.agency_id === this.agency.id);
+      return this.selectedGrant.viewed_by_agencies.find((viewed) => viewed.agency_id.toString() === this.selectedAgencyId);
     },
     interested() {
       if (!this.selectedGrant) {
         return false;
       }
-      return this.selectedGrant.interested_agencies.find((interested) => interested.agency_id === this.agency.id);
+      return this.selectedGrant.interested_agencies.find((interested) => interested.agency_id.toString() === this.selectedAgencyId);
     },
   },
   watch: {
@@ -208,13 +210,13 @@ export default {
       this.debouncedSearchInput = newVal;
     }, 500),
     async markGrantAsViewed() {
-      await this.markGrantAsViewedAction({ grantId: this.selectedGrant.grant_id, agencyId: this.agency.id });
+      await this.markGrantAsViewedAction({ grantId: this.selectedGrant.grant_id, agencyId: this.selectedAgencyId });
     },
     async markGrantAsInterested() {
       if (this.selectedInterestedCode !== null) {
         await this.markGrantAsInterestedAction({
           grantId: this.selectedGrant.grant_id,
-          agencyId: this.agency.id,
+          agencyId: this.selectedAgencyId,
           interestedCode: this.selectedInterestedCode,
         });
       }
