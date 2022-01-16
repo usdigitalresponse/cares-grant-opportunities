@@ -99,13 +99,13 @@ describe('`/api/users` endpoint', async () => {
                 const response = await fetchApi(`/users`, agencies.own, fetchOptions.admin);
                 expect(response.statusText).to.equal('OK');
                 const json = await response.json();
-                expect(json.length).to.equal(11);
+                expect(json.length).to.equal(9);
             });
             it('lists users for a subagency of this user\'s own agency', async () => {
                 const response = await fetchApi(`/users`, agencies.ownSub, fetchOptions.admin);
                 expect(response.statusText).to.equal('OK');
                 const json = await response.json();
-                expect(json.length).to.equal(6);
+                expect(json.length).to.equal(5);
             });
             it('is forbidden for an agency outside this user\'s hierarchy', async () => {
                 const response = await fetchApi(`/users`, agencies.offLimits, fetchOptions.admin);
