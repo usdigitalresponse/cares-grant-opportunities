@@ -312,6 +312,9 @@ async function getGrants({
                     const orderArgs = orderBy.split('|');
                     queryBuilder.orderBy(...orderArgs);
                 }
+            } else {
+                // default to created at desc
+                queryBuilder.orderBy(`${TABLES.grants}.created_at`, 'DESC');
             }
         })
         .paginate({ currentPage, perPage, isLengthAware: true });
